@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../marketplace/marketplace_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -338,7 +339,21 @@ class _LoginScreenState extends State<LoginScreen> {
           child: ElevatedButton(
             onPressed: vm.isLoading 
               ? null 
-              : () => vm.login(_emailController.text, _passwordController.text),
+              : () async {
+                  final success = await vm.login(_emailController.text, _passwordController.text);
+                  if (success && context.mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+                    );
+                  } else if (context.mounted && vm.error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(vm.error!),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                },
             child: vm.isLoading
               ? const SizedBox(
                   height: 20,

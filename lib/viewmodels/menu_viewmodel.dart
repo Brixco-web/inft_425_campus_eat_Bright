@@ -1,17 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/menu_item_model.dart';
+import '../models/promotion_model.dart';
 import '../services/menu_service.dart';
+import '../services/promotion_service.dart';
 
 /// ViewModel for the marketplace Marketplace, managing real-time data flow and filtering.
 class MenuViewModel extends ChangeNotifier {
   final MenuService _menuService = MenuService();
+  final PromotionService _promotionService = PromotionService();
   
   List<MenuItem> _allItems = [];
   List<MenuItem> get allItems => _allItems;
 
   List<MenuItem> _filteredItems = [];
   List<MenuItem> get filteredItems => _filteredItems;
+
+  List<PromotionModel> _activePromotions = [];
+  List<PromotionModel> get activePromotions => _activePromotions;
 
   MenuCategory? _selectedCategory;
   MenuCategory? get selectedCategory => _selectedCategory;
@@ -20,6 +26,7 @@ class MenuViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   StreamSubscription<List<MenuItem>>? _menuSubscription;
+  StreamSubscription<List<PromotionModel>>? _promoSubscription;
 
   MenuViewModel() {
     _initMenuStream();
@@ -36,9 +43,11 @@ class MenuViewModel extends ChangeNotifier {
       _applyFiltering();
       _isLoading = false;
       notifyListeners();
-    }, onError: (error) {
-      // Logic for error reporting in the UI can be added here
-      _isLoading = false;
+    });
+
+    _promoSubscription?.cancel();
+    _promoSubscription = _promotionService.getActivePromotions().listen((promos) {
+      _activePromotions = promos;
       notifyListeners();
     });
   }
@@ -95,6 +104,7 @@ class MenuViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _menuSubscription?.cancel();
+    _promoSubscription?.cancel();
     super.dispose();
   }
 }
