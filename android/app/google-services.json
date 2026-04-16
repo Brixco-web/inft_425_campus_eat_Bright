@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1095542040327",
+    "project_id": "campuseats-vvu",
+    "storage_bucket": "campuseats-vvu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095542040327:android:7d3241bd552e72b58147a2",
+        "android_client_info": {
+          "package_name": "com.example.inft_425_campus_eat_bright"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVxIJoeXgAaNyeZLmkmSkx3P6p_GsZD0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095542040327:android:158096614b7482d48147a2",
+        "android_client_info": {
+          "package_name": "gh.edu.vvu.inft425_campuseats_bright_adu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVxIJoeXgAaNyeZLmkmSkx3P6p_GsZD0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
