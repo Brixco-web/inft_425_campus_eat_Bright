@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-
-// import '../../models/user_model.dart'; // To be used in Commit 2
-
+import '../../models/user_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   
+  UserModel? _currentUser;
+  UserModel? get currentUser => _currentUser;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
   
@@ -20,12 +21,30 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     
     try {
-      await _authService.login(email, password);
+      // 1. Initial Authentication
+      final credential = await _authService.login(email, password);
+      
+      if (credential?.user != null) {
+        // 2. Gatekeeping Authorization Check
+        final authorized = await _authService.isAuthorized(email);
+        
+        if (!authorized) {
+          await _authService.signOut();
+          _error = "ACCESS DENIED: Your account is not authorized for the Obsidian Loom. Please use a campus email or request whitelisting.";
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        // 3. Profile Sync
+        await _authService.syncUserProfile(credential!.user!);
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -39,12 +58,28 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     
     try {
-      await _authService.register(email, password);
+      // 1. Authorization Pre-Check
+      final authorized = await _authService.isAuthorized(email);
+      if (!authorized) {
+        _error = "REGISTRATION DENIED: Only @vvu.edu.gh domains are permitted for self-registration.";
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      // 2. Create Firebase Account
+      final credential = await _authService.register(email, password);
+      
+      if (credential?.user != null) {
+        // 3. Initial Profile Creation
+        await _authService.syncUserProfile(credential!.user!);
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = _handleAuthError(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -58,7 +93,10 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     
     try {
-      await _authService.signInAnonymously();
+      final credential = await _authService.signInAnonymously();
+      if (credential?.user != null) {
+        await _authService.syncUserProfile(credential!.user!);
+      }
       _isLoading = false;
       notifyListeners();
       return true;
@@ -74,4 +112,13 @@ class AuthViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  String _handleAuthError(dynamic e) {
+    final message = e.toString().toLowerCase();
+    if (message.contains('user-not-found')) return "ACCOUNT ERROR: Identification not found in the Loom.";
+    if (message.contains('wrong-password')) return "ACCESS DENIED: Invalid keyphrase.";
+    if (message.contains('invalid-email')) return "ERROR: Invalid identifier format.";
+    return "SYSTEM ERROR: A distortion in the Loom occurred. Please try again.";
+  }
 }
+

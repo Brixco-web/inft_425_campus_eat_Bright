@@ -1,14 +1,39 @@
 import 'package:firebase_auth/firebase_auth.dart';
-// Firestore and UserModel will be used in Commit 2
-
+import 'firestore_service.dart';
+import '../models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final FirebaseFirestore _db = FirebaseFirestore.instance; // To be used in Commit 2
-
+  final FirestoreService _firestore = FirestoreService();
 
   // Stream of user changes
   Stream<User?> get user => _auth.authStateChanges();
+
+  /// Logic to determine if a user should be allowed into the system.
+  Future<bool> isAuthorized(String email) async {
+    // 1. Check for official campus domain
+    if (email.toLowerCase().endsWith('@vvu.edu.gh')) {
+      return true;
+    }
+    
+    // 2. Check for manual whitelist override (for admins/contractors)
+    return await _firestore.isWhitelisted(email);
+  }
+
+  /// Ensures a user profile exists in Firestore.
+  Future<void> syncUserProfile(User user) async {
+    final existingProfile = await _firestore.getUser(user.uid);
+    
+    if (existingProfile == null) {
+      // Create new profile
+      final newProfile = UserModel(
+        uid: user.uid,
+        email: user.email ?? '',
+        role: user.isAnonymous ? UserRole.guest : UserRole.student,
+      );
+      await _firestore.saveUser(newProfile);
+    }
+  }
 
   // Register with Email & Password
   Future<UserCredential?> register(String email, String password) async {
@@ -17,8 +42,6 @@ class AuthService {
         email: email,
         password: password,
       );
-      
-      // Initial user data creation in Firestore will happen in Commit 2 (Whitelist Logic)
       return result;
     } catch (e) {
       rethrow;
@@ -50,9 +73,5 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
-
-  // Verification helper for @vvu.edu.gh hint
-  bool isVVUEmail(String email) {
-    return email.toLowerCase().endsWith('@vvu.edu.gh');
-  }
 }
+

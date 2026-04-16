@@ -11,6 +11,8 @@ class UserModel {
   final UserRole role;
   final double walletBalance;
   final String? photoUrl;
+  final String? studentId;
+  final String? faculty;
 
   UserModel({
     required this.uid,
@@ -18,6 +20,8 @@ class UserModel {
     this.role = UserRole.student,
     this.walletBalance = 0.0,
     this.photoUrl,
+    this.studentId,
+    this.faculty,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data) {
@@ -27,6 +31,8 @@ class UserModel {
       role: _parseRole(data['role']),
       walletBalance: (data['walletBalance'] ?? 0.0).toDouble(),
       photoUrl: data['photoUrl'],
+      studentId: data['studentId'],
+      faculty: data['faculty'],
     );
   }
 
@@ -37,6 +43,8 @@ class UserModel {
       'role': role.name,
       'walletBalance': walletBalance,
       'photoUrl': photoUrl,
+      'studentId': studentId,
+      'faculty': faculty,
     };
   }
 
@@ -53,3 +61,4 @@ class UserModel {
     }
   }
 }
+
