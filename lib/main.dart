@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/menu_viewmodel.dart';
 import 'features/auth/login_screen.dart';
 
 void main() async {
@@ -23,6 +24,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => MenuViewModel()),
       ],
       child: const CampusEatsApp(),
     ),
