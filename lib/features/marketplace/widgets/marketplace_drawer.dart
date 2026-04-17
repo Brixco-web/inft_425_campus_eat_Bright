@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../viewmodels/auth_viewmodel.dart';
 import '../../../viewmodels/wallet_viewmodel.dart';
+import '../../../models/user_model.dart';
 import '../../wallet/wallet_screen.dart';
 import '../../orders/my_bookings_screen.dart';
+import '../../admin/admin_dashboard.dart';
 
 class MarketplaceDrawer extends StatelessWidget {
   const MarketplaceDrawer({super.key});
@@ -43,6 +45,19 @@ class MarketplaceDrawer extends StatelessWidget {
                   subtitle: 'Pickup QRs & History',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
                 ),
+
+                // 2.a CONDITIONAL ADMIN ENTRY (Restricted)
+                if (user?.role == UserRole.admin) ...[
+                  const Divider(color: Colors.white10, height: 48),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.admin_panel_settings_outlined,
+                    title: 'ADMIN CONSOLE',
+                    subtitle: 'Management Dashboard',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboard())),
+                  ),
+                ],
+
                 const Divider(color: Colors.white10, height: 64),
                 _buildNavItem(
                   context,

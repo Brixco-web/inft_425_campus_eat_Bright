@@ -30,7 +30,7 @@ class AuthService {
       displayName: displayName,
       studentId: studentId,
       phoneNumber: phoneNumber,
-      role: role,
+      role: email == 'admin123@gmail.com' ? UserRole.admin : role,
     );
     await _firestore.saveUser(newProfile);
   }
@@ -44,7 +44,9 @@ class AuthService {
         uid: user.uid,
         email: user.email ?? '',
         displayName: user.displayName ?? 'New User',
-        role: user.isAnonymous ? UserRole.guest : UserRole.student,
+        role: (user.email == 'admin123@gmail.com') 
+            ? UserRole.admin 
+            : (user.isAnonymous ? UserRole.guest : UserRole.student),
       );
       await _firestore.saveUser(newProfile);
     }

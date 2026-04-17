@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../models/user_model.dart';
 import '../marketplace/marketplace_screen.dart';
+import '../admin/admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -430,9 +432,16 @@ class _LoginScreenState extends State<LoginScreen> {
               : () async {
                   final success = await vm.login(_emailController.text, _passwordController.text);
                   if (success && context.mounted) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
-                    );
+                    final role = vm.user?.role ?? UserRole.student;
+                    if (role == UserRole.admin) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+                      );
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+                      );
+                    }
                   } else if (context.mounted && vm.error != null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -669,9 +678,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (success && sheetContext.mounted) {
                                   Navigator.of(sheetContext).pop(); // Close sheet
                                   if (context.mounted) {
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
-                                    );
+                                    final role = vm.user?.role ?? UserRole.student;
+                                    if (role == UserRole.admin) {
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+                                      );
+                                    } else {
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+                                      );
+                                    }
                                   }
                                 } else if (sheetContext.mounted && vm.error != null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
