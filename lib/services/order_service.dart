@@ -23,6 +23,18 @@ class OrderService {
     });
   }
 
+  /// Streams all orders for administration.
+  Stream<List<OrderModel>> getAllOrdersStream() {
+    return _orders
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    });
+  }
+
   /// The "Magic Sauce": Atomic Order Placement.
   /// Deducts stock, deducts balance, and creates the order in one atomic step.
   Future<String> placeOrder({
