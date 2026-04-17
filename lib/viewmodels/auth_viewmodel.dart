@@ -56,10 +56,6 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final authenticated = await _localAuth.authenticate(
         localizedReason: 'Please authenticate to unlock Campus Eats',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
       );
 
       if (authenticated) {

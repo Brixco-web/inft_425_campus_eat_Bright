@@ -8,6 +8,7 @@ class WalletViewModel extends ChangeNotifier {
   WalletModel? _wallet;
   WalletModel? get wallet => _wallet;
   double get balance => _wallet?.balance ?? 0.0;
+  List<WalletTransaction> get transactions => _wallet?.transactions ?? [];
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;

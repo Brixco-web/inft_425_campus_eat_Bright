@@ -8,6 +8,7 @@ import '../../viewmodels/order_viewmodel.dart';
 import '../../viewmodels/wallet_viewmodel.dart';
 import '../orders/pickup_pass_screen.dart';
 import '../../models/order_model.dart';
+import '../../models/wallet_model.dart';
 
 class StudentProfileScreen extends StatelessWidget {
   const StudentProfileScreen({super.key});
@@ -64,7 +65,7 @@ class StudentProfileScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.primaryContainer.withOpacity(0.05),
+              AppColors.primaryContainer.withValues(alpha: 0.05),
               AppColors.background,
               AppColors.background,
             ],
@@ -104,8 +105,8 @@ class StudentProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surfaceContainerHigh.withOpacity(0.5),
-              border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
+              color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
             ),
             child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
           ),
@@ -126,10 +127,10 @@ class StudentProfileScreen extends StatelessWidget {
           fit: BoxFit.cover,
           opacity: 0.1,
         ),
-        border: Border.all(color: AppColors.primaryContainer.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.2), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -187,7 +188,7 @@ class StudentProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer.withOpacity(0.15),
+        color: AppColors.primaryContainer.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -242,6 +243,7 @@ class StudentProfileScreen extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: _buildActionItem(
+                context,
                 Icons.card_giftcard_rounded,
                 'Rewards',
                 '120 Points',
@@ -267,9 +269,9 @@ class StudentProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHigh.withOpacity(0.5),
+          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +351,7 @@ class StudentProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(TransactionModel tx) {
+  Widget _buildTransactionItem(WalletTransaction tx) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -365,8 +367,8 @@ class StudentProfileScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              tx.type == TransactionType.debit ? Icons.shopping_bag_outlined : Icons.account_balance_wallet_outlined,
-              color: tx.type == TransactionType.debit ? AppColors.secondaryContainer : AppColors.primaryContainer,
+              tx.type == TransactionType.purchase ? Icons.shopping_bag_outlined : Icons.account_balance_wallet_outlined,
+              color: tx.type == TransactionType.purchase ? AppColors.secondaryContainer : AppColors.primaryContainer,
               size: 20,
             ),
           ),
@@ -376,7 +378,7 @@ class StudentProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tx.title,
+                  tx.description,
                   style: GoogleFonts.manrope(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -384,21 +386,21 @@ class StudentProfileScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  tx.date.toString().split(' ')[0],
+                  tx.timestamp.toString().split(' ')[0],
                   style: GoogleFonts.manrope(
                     fontSize: 11,
-                    color: AppColors.onSurfaceVariant.withOpacity(0.5),
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
                 ),
               ],
             ),
           ),
           Text(
-            '${tx.type == TransactionType.debit ? '-' : '+'}GHS ${tx.amount.toStringAsFixed(2)}',
+            '${tx.type == TransactionType.purchase ? '-' : '+'}GHS ${tx.amount.toStringAsFixed(2)}',
             style: GoogleFonts.epilogue(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: tx.type == TransactionType.debit ? Colors.white : AppColors.primaryContainer,
+              color: tx.type == TransactionType.purchase ? Colors.white : AppColors.primaryContainer,
             ),
           ),
         ],

@@ -9,7 +9,7 @@ class OrderViewModel extends ChangeNotifier {
   List<OrderModel> _orders = [];
   List<OrderModel> get orders => _orders;
 
-  List<OrderModel> get activeOrders => _orders.where((o) => o.status.toLowerCase() != 'collected' && o.status.toLowerCase() != 'cancelled').toList();
+  List<OrderModel> get activeOrders => _orders.where((o) => o.status != OrderStatus.collected && o.status != OrderStatus.cancelled).toList();
   bool get hasActiveOrder => activeOrders.isNotEmpty;
 
   bool _isLoading = false;
