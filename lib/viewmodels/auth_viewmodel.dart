@@ -52,27 +52,30 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Register
-  Future<bool> register(String email, String password) async {
+  Future<bool> register({
+    required String email,
+    required String password,
+    required String displayName,
+    required String studentId,
+    required String phoneNumber,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     
     try {
-      // 1. Authorization Pre-Check
-      final authorized = await _authService.isAuthorized(email);
-      if (!authorized) {
-        _error = "REGISTRATION DENIED: Only @vvu.edu.gh domains are permitted for self-registration.";
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      // 2. Create Firebase Account
+      // 1. Create Firebase Account
       final credential = await _authService.register(email, password);
       
       if (credential?.user != null) {
-        // 3. Initial Profile Creation
-        await _authService.syncUserProfile(credential!.user!);
+        // 2. Full Profile Creation
+        await _authService.createProfile(
+          uid: credential!.user!.uid,
+          email: email,
+          displayName: displayName,
+          studentId: studentId,
+          phoneNumber: phoneNumber,
+        );
       }
 
       _isLoading = false;

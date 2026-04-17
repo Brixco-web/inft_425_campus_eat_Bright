@@ -42,19 +42,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // 3. Main Content
           SafeArea(
-            child: Column(
-              children: [
-                // Top Branding Header
-                _buildTopBranding(context),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          // Top Branding Header
+                          _buildTopBranding(context),
 
-                const Spacer(),
+                          const Spacer(),
 
-                // Login Card (Glassmorphism)
-                _buildLoginPanel(context, authViewModel, size),
-                
-                // Bottom Spacing for Mobile
-                const SizedBox(height: 24),
-              ],
+                          // Login Card (Glassmorphism)
+                          _buildLoginPanel(context, authViewModel, size),
+                          
+                          // Bottom Spacing for Mobile
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
@@ -382,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () => _showRegistrationSheet(context),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
@@ -399,6 +412,221 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  void _showRegistrationSheet(BuildContext context) {
+    final regNameController = TextEditingController();
+    final regIdController = TextEditingController();
+    final regEmailController = TextEditingController();
+    final regPhoneController = TextEditingController();
+    final regPasswordController = TextEditingController();
+    final regConfirmController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Consumer<AuthViewModel>(
+          builder: (ctx, vm, _) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerHigh,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag Handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Title
+                    Text(
+                      'JOIN THE LOOM',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryContainer,
+                        letterSpacing: 3.0,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Create your Campus Eats account to join the Obsidian Loom ecosystem.',
+                      style: GoogleFonts.manrope(
+                        fontSize: 14,
+                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Full Name Field
+                    TextField(
+                      controller: regNameController,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'FULL NAME',
+                        hintText: 'John Doe',
+                        prefixIcon: Icon(Icons.person_outline, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Student ID Field
+                    TextField(
+                      controller: regIdController,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'STUDENT ID',
+                        hintText: '20210001',
+                        prefixIcon: Icon(Icons.badge_outlined, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const SizedBox(height: 32),
+
+                    // Email Field
+                    TextField(
+                      controller: regEmailController,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'CAMPUS EMAIL',
+                        hintText: 'student@vvu.edu.gh',
+                        prefixIcon: Icon(Icons.alternate_email, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Password Field
+                    TextField(
+                      controller: regPasswordController,
+                      obscureText: true,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'CREATE KEYPHRASE',
+                        hintText: '••••••••••••',
+                        prefixIcon: Icon(Icons.lock_outline, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Phone Number Field
+                    TextField(
+                      controller: regPhoneController,
+                      keyboardType: TextInputType.phone,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'COMMAND PHONE',
+                        hintText: '+233 ...',
+                        prefixIcon: Icon(Icons.phone_android, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Confirm Password Field
+                    TextField(
+                      controller: regConfirmController,
+                      obscureText: true,
+                      style: GoogleFonts.manrope(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'CONFIRM KEYPHRASE',
+                        hintText: '••••••••••••',
+                        prefixIcon: Icon(Icons.lock_reset, size: 20, color: Color(0x80FFE16D)),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Register Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: vm.isLoading
+                            ? null
+                            : () async {
+                                // Validation
+                                if (regPasswordController.text != regConfirmController.text) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Keyphrases do not match.'),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (regPasswordController.text.length < 6) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Keyphrase must be at least 6 characters.'),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final success = await vm.register(
+                                  email: regEmailController.text.trim(),
+                                  password: regPasswordController.text,
+                                  displayName: regNameController.text.trim(),
+                                  studentId: regIdController.text.trim(),
+                                  phoneNumber: regPhoneController.text.trim(),
+                                );
+
+                                if (success && sheetContext.mounted) {
+                                  Navigator.of(sheetContext).pop(); // Close sheet
+                                  if (context.mounted) {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+                                    );
+                                  }
+                                } else if (sheetContext.mounted && vm.error != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(vm.error!),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                }
+                              },
+                        child: vm.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.onPrimaryContainer,
+                                ),
+                              )
+                            : const Text('CREATE ACCOUNT'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
