@@ -29,7 +29,7 @@ class _AdminWalletManagerState extends State<AdminWalletManager> {
       final query = await FirebaseFirestore.instance
           .collection('users')
           .where('fullName', isGreaterThanOrEqualTo: _searchController.text)
-          .where('fullName', isLessThanOrEqualTo: _searchController.text + '\uf8ff')
+          .where('fullName', isLessThanOrEqualTo: '${_searchController.text}\uf8ff')
           .limit(1)
           .get();
           
@@ -134,7 +134,7 @@ class _AdminWalletManagerState extends State<AdminWalletManager> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

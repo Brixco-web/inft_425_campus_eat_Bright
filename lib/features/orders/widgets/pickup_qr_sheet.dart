@@ -17,9 +17,9 @@ class PickupQRSheet extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.8),
+        color: AppColors.background.withOpacity(0.8),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -35,7 +35,7 @@ class PickupQRSheet extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                    color: AppColors.outlineVariant.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -69,7 +69,7 @@ class PickupQRSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                        color: AppColors.primaryContainer.withOpacity(0.2),
                         blurRadius: 30,
                         spreadRadius: 5,
                       ),
@@ -80,7 +80,14 @@ class PickupQRSheet extends StatelessWidget {
                     version: QrVersions.auto,
                     size: 200.0,
                     gapless: false,
-                    foregroundColor: Colors.black,
+                    eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Colors.black,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Colors.black,
+                ),
                   ),
                 ),
                 
@@ -90,7 +97,7 @@ class PickupQRSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+                    color: AppColors.surfaceContainerHigh.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

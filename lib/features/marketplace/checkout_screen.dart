@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -80,7 +79,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.primaryContainer.withValues(alpha: 0.05),
+          color: AppColors.primaryContainer.withOpacity(0.05),
         ),
       ),
     );
@@ -113,7 +112,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.white.withValues(alpha: 0.1)),
+            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 16),
             Text(
               'Your basket is empty.',
@@ -148,9 +147,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.4),
+        color: AppColors.surface.withOpacity(0.4),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -161,7 +160,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
+              errorBuilder: (context, error, stackTrace) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
             ),
           ),
           const SizedBox(width: 16),
@@ -229,7 +228,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               trailing: Switch(
                 value: _isLectureMode,
                 onChanged: (val) => setState(() => _isLectureMode = val),
-                activeColor: AppColors.primaryContainer,
+                activeThumbColor: AppColors.primaryContainer,
               ),
             ),
             if (_isLectureMode) ...[
@@ -278,7 +277,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -345,7 +344,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              AppColors.background.withValues(alpha: 0.95),
+              AppColors.background.withOpacity(0.95),
               AppColors.background,
             ],
           ),
@@ -374,7 +373,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             final success = await orderVM.placeOrder(
               userId: user.uid,
-              studentName: user.displayName ?? 'Student',
+              studentName: user.displayName,
               items: orderItems,
               totalAmount: total + 2.00,
               pickupTime: pickup,

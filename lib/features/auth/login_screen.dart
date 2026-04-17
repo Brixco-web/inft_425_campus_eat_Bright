@@ -97,8 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.topCenter,
             colors: [
               AppColors.surfaceContainerLowest,
-              AppColors.surfaceContainerLowest.withValues(alpha: 0.4),
-              AppColors.surfaceContainerLowest.withValues(alpha: 0.2),
+              AppColors.surfaceContainerLowest.withOpacity(0.4),
+              AppColors.surfaceContainerLowest.withOpacity(0.2),
             ],
             stops: const [0.1, 0.5, 1.0],
           ),
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
             height: 256,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primaryContainer.withValues(alpha: 0.05),
+              color: AppColors.primaryContainer.withOpacity(0.05),
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
             height: 384,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primaryContainer.withValues(alpha: 0.1),
+              color: AppColors.primaryContainer.withOpacity(0.1),
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 150, sigmaY: 150),
@@ -198,11 +198,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       width: size.width,
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.6),
+        color: AppColors.surface.withOpacity(0.6),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border(
           top: BorderSide(
-            color: AppColors.outlineVariant.withValues(alpha: 0.15),
+            color: AppColors.outlineVariant.withOpacity(0.15),
             width: 1,
           ),
         ),
@@ -275,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 32),
         Row(
           children: [
-            Container(width: 48, height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+            Container(width: 48, height: 1, color: AppColors.outlineVariant.withOpacity(0.3)),
             const SizedBox(width: 12),
             Text(
               'SECURE COMMAND LINK',
@@ -315,7 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
               icon: Icon(
                 _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                 size: 20,
-                color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+                color: AppColors.onSurfaceVariant.withOpacity(0.5),
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
@@ -383,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildFooter(BuildContext context) {
     return Column(
       children: [
-        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        Divider(color: AppColors.outlineVariant.withOpacity(0.1)),
         const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -391,13 +391,13 @@ class _LoginScreenState extends State<LoginScreen> {
             Text(
               'NEW PARTICIPANT?',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                color: AppColors.onSurfaceVariant.withOpacity(0.4),
               ),
             ),
             OutlinedButton(
               onPressed: () => _showRegistrationSheet(context),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
+                side: BorderSide(color: AppColors.primaryContainer.withOpacity(0.3)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               ),
@@ -440,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: AppColors.surfaceContainerHigh,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   border: Border.all(
-                    color: AppColors.outlineVariant.withValues(alpha: 0.1),
+                    color: AppColors.outlineVariant.withOpacity(0.1),
                   ),
                 ),
                 child: Column(
@@ -453,7 +453,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                          color: AppColors.outlineVariant.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -475,7 +475,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Create your Campus Eats account to join the Obsidian Loom ecosystem.',
                       style: GoogleFonts.manrope(
                         fontSize: 14,
-                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                        color: AppColors.onSurfaceVariant.withOpacity(0.6),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -642,7 +642,7 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: Colors.black.withOpacity(0.5),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),

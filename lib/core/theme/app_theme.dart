@@ -62,24 +62,24 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           letterSpacing: 2.0,
           fontSize: 12,
-          color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+          color: AppColors.onSurfaceVariant.withOpacity(0.8),
         ),
         labelMedium: GoogleFonts.spaceGrotesk(
           fontWeight: FontWeight.w500,
           letterSpacing: 1.5,
           fontSize: 10,
-          color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+          color: AppColors.onSurfaceVariant.withOpacity(0.6),
         ),
       ),
 
       cardTheme: CardThemeData(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
+        color: AppColors.surfaceContainerHigh.withOpacity(0.6),
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
-            color: AppColors.outlineVariant.withValues(alpha: 0.15),
+            color: AppColors.outlineVariant.withOpacity(0.15),
             width: 1,
           ),
         ),
@@ -89,10 +89,10 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surfaceContainerLowest,
         border: UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.3)),
         ),
         enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+          borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.3)),
         ),
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: AppColors.primaryContainer, width: 2),
@@ -107,7 +107,7 @@ class AppTheme {
           letterSpacing: 1.5,
         ),
         hintStyle: GoogleFonts.manrope(
-          color: AppColors.onSurfaceVariant.withValues(alpha: 0.3),
+          color: AppColors.onSurfaceVariant.withOpacity(0.3),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       ),

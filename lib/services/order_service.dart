@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/order_model.dart';
-import '../models/menu_item_model.dart';
 
 /// The Transaction Engine: Handles high-integrity order placement and verification.
 class OrderService {

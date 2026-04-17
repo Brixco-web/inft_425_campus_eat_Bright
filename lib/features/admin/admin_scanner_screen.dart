@@ -149,9 +149,9 @@ class _AdminScannerScreenState extends State<AdminScannerScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.8),
+          color: AppColors.surface.withOpacity(0.8),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
         ),
         child: Column(
           children: [

@@ -123,13 +123,13 @@ class _AddEditMenuItemScreenState extends State<AddEditMenuItemScreen> {
                 height: 150,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Image.network(
                   _imageController.text,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.error_outline)),
+                  errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.error_outline)),
                 ),
               ),
             
@@ -191,7 +191,7 @@ class _AddEditMenuItemScreenState extends State<AddEditMenuItemScreen> {
           style: GoogleFonts.manrope(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.manrope(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
+            hintStyle: GoogleFonts.manrope(color: AppColors.onSurfaceVariant.withOpacity(0.5)),
             filled: true,
             fillColor: AppColors.surfaceContainerLow,
             border: OutlineInputBorder(

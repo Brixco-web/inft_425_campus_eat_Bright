@@ -22,15 +22,15 @@ class FoodCard extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.3),
+          color: AppColors.surface.withOpacity(0.3),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.outlineVariant.withValues(alpha: 0.1),
+            color: AppColors.outlineVariant.withOpacity(0.1),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: Colors.black.withOpacity(0.2),
               blurRadius: 15,
               offset: const Offset(0, 10),
             ),
@@ -61,8 +61,8 @@ class FoodCard extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.1),
-                      Colors.black.withValues(alpha: 0.7),
+                      Colors.black.withOpacity(0.1),
+                      Colors.black.withOpacity(0.7),
                     ],
                   ),
                 ),
@@ -119,7 +119,7 @@ class FoodCard extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          color: Colors.black.withValues(alpha: 0.4),
+          color: Colors.black.withOpacity(0.4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

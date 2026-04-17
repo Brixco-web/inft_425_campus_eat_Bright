@@ -96,9 +96,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: Colors.black.withOpacity(0.3),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: Icon(icon, color: Colors.white, size: 20),
           ),
@@ -116,7 +116,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: Colors.black.withOpacity(0.5),
               blurRadius: 40,
               offset: const Offset(0, -10),
             ),
@@ -201,7 +201,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   Text(
                     widget.item.description,
                     style: GoogleFonts.manrope(
-                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                      color: AppColors.onSurfaceVariant.withOpacity(0.8),
                       height: 1.6,
                       fontSize: 16,
                     ),
@@ -225,9 +225,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         text,
@@ -242,7 +242,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

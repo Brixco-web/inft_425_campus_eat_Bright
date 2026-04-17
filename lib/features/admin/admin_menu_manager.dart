@@ -122,7 +122,7 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
@@ -133,7 +133,8 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
             width: 60,
             height: 60,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
+            errorBuilder: (context, error, stackTrace) => Container(
+                color: Colors.white10, child: const Icon(Icons.fastfood)),
           ),
         ),
         title: Text(item.name, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -150,7 +151,7 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
             isAvailable: val,
             prepTime: item.prepTime,
           )),
-          activeColor: AppColors.primaryContainer,
+          activeThumbColor: AppColors.primaryContainer,
         ),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditMenuItemScreen(item: item))),
       ),
@@ -162,7 +163,7 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),

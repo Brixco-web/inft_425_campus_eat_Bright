@@ -28,7 +28,7 @@ class PromoBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryContainer.withValues(alpha: 0.1),
+            color: AppColors.primaryContainer.withOpacity(0.1),
             blurRadius: 30,
             spreadRadius: -10,
           ),
@@ -55,8 +55,8 @@ class PromoBanner extends StatelessWidget {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Colors.black.withValues(alpha: 0.95),
-                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withOpacity(0.95),
+                    Colors.black.withOpacity(0.4),
                     Colors.transparent,
                   ],
                 ),

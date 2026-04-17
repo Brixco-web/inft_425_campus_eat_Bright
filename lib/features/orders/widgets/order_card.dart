@@ -16,10 +16,10 @@ class OrderCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.3),
+        color: AppColors.surface.withOpacity(0.3),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: _getStatusColor(order.status).withValues(alpha: 0.3),
+          color: _getStatusColor(order.status).withOpacity(0.3),
           width: 2,
         ),
       ),
@@ -130,9 +130,9 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _getStatusColor(order.status).withValues(alpha: 0.1),
+        color: _getStatusColor(order.status).withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _getStatusColor(order.status).withValues(alpha: 0.5)),
+        border: Border.all(color: _getStatusColor(order.status).withOpacity(0.5)),
       ),
       child: Text(
         order.status.name.toUpperCase(),

@@ -146,7 +146,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: order.status == OrderStatus.ready ? Colors.greenAccent.withValues(alpha: 0.3) : AppColors.outlineVariant.withValues(alpha: 0.1),
+          color: order.status == OrderStatus.ready ? Colors.greenAccent.withOpacity(0.3) : AppColors.outlineVariant.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -156,7 +156,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${order.studentName.toUpperCase()}',
+                order.studentName.toUpperCase(),
                 style: GoogleFonts.spaceGrotesk(color: AppColors.onSurface, fontWeight: FontWeight.bold),
               ),
               _buildSimpleStatusBadge(order.status),
@@ -221,7 +221,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +251,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

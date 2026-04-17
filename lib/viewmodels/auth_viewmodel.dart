@@ -118,6 +118,12 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> logout() async {
+    await _authService.signOut();
+    _currentUser = null;
+    notifyListeners();
+  }
+
   String _handleAuthError(dynamic e) {
     final message = e.toString().toLowerCase();
     if (message.contains('user-not-found')) return "ACCOUNT ERROR: Identification not found in the Loom.";
