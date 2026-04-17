@@ -5,6 +5,10 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/order_viewmodel.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/cart_viewmodel.dart';
+import '../../viewmodels/menu_viewmodel.dart';
+import '../../models/menu_item_model.dart';
+import '../../models/order_model.dart';
 import '../orders/my_bookings_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {

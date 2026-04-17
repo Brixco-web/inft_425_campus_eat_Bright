@@ -5,7 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/cart_viewmodel.dart';
+import '../../viewmodels/menu_viewmodel.dart';
+import '../../models/menu_item_model.dart';
+import '../../models/promotion_model.dart';
 import 'checkout_screen.dart';
+import 'widgets/food_card.dart';
+import 'widgets/category_chip.dart';
+import 'widgets/promo_banner.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});

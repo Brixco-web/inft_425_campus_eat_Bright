@@ -12,6 +12,7 @@ class MenuViewModel extends ChangeNotifier {
   
   List<MenuItem> _allItems = [];
   List<MenuItem> get allItems => _allItems;
+  List<MenuItem> get items => _allItems;
 
   List<MenuItem> _filteredItems = [];
   List<MenuItem> get filteredItems => _filteredItems;
@@ -99,6 +100,48 @@ class MenuViewModel extends ChangeNotifier {
   List<MenuItem> get spotlightItems {
     final list = _allItems.where((item) => item.rating >= 4.5).toList();
     return list..sort((a, b) => b.rating.compareTo(a.rating));
+  }
+
+  // --- Administrative Methods ---
+
+  /// Adds or updates a menu item in Firestore.
+  Future<void> saveMenuItem(MenuItem item) async {
+    try {
+      await _menuService.saveMenuItem(item);
+    } catch (e) {
+      debugPrint('Error saving menu item: $e');
+      rethrow;
+    }
+  }
+
+  /// Removes a menu item from the catalog.
+  Future<void> deleteMenuItem(String id) async {
+    try {
+      await _menuService.deleteMenuItem(id);
+    } catch (e) {
+      debugPrint('Error deleting menu item: $e');
+      rethrow;
+    }
+  }
+
+  /// Adds or updates a promotion flier.
+  Future<void> savePromotion(PromotionModel promo) async {
+    try {
+      await _promotionService.savePromotion(promo);
+    } catch (e) {
+      debugPrint('Error saving promotion: $e');
+      rethrow;
+    }
+  }
+
+  /// Removes a promotion flier.
+  Future<void> deletePromotion(String id) async {
+    try {
+      await _promotionService.deletePromotion(id);
+    } catch (e) {
+      debugPrint('Error deleting promotion: $e');
+      rethrow;
+    }
   }
 
   @override

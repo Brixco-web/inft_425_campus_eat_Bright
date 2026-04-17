@@ -47,9 +47,3 @@ class MenuService {
     await _menu.doc(id).delete();
   }
 }
-
-  /// Administrator capability: Deletes a menu item.
-  Future<void> deleteMenuItem(String id) async {
-    await _menu.doc(id).delete();
-  }
-}

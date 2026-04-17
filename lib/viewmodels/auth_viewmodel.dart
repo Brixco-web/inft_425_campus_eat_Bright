@@ -6,7 +6,9 @@ class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   
   UserModel? _currentUser;
-  UserModel? get currentUser => _currentUser;
+  UserModel? get user => _currentUser;
+  
+  String? get uid => _currentUser?.uid;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;

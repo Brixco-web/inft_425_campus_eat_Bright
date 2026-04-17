@@ -3,10 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'core/theme/app_theme.dart';
+import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/menu_viewmodel.dart';
 import 'viewmodels/cart_viewmodel.dart';
 import 'viewmodels/order_viewmodel.dart';
 import 'viewmodels/wallet_viewmodel.dart';
+import 'features/auth/login_screen.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

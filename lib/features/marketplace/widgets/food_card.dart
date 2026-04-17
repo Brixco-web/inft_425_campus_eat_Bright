@@ -112,7 +112,7 @@ class FoodCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBadge({required IconData icon, required String text}) {
+  Widget _buildBadge({required IconData icon, required String text, Color? color}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: BackdropFilter(
@@ -123,7 +123,7 @@ class FoodCard extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppColors.primaryContainer, size: 12),
+              Icon(icon, color: color ?? AppColors.primaryContainer, size: 12),
               const SizedBox(width: 4),
               Text(
                 text,

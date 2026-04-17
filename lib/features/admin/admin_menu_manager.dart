@@ -1,9 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../viewmodels/menu_viewmodel.dart';
+import '../../models/menu_item_model.dart';
+import '../../models/promotion_model.dart';
+import 'add_edit_menu_item_screen.dart';
+import 'add_edit_promotion_screen.dart';
 
-class AdminMenuManager extends StatelessWidget {
+class AdminMenuManager extends StatefulWidget {
   const AdminMenuManager({super.key});
+
+  @override
+  State<AdminMenuManager> createState() => _AdminMenuManagerState();
+}
+
+class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,62 +45,135 @@ class AdminMenuManager extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryContainer),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            // Flier Manager Section Placeholder
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'ACTIVE PROMOTIONS',
-                        style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold, letterSpacing: 2),
-                      ),
-                      const Icon(Icons.timer_outlined, color: AppColors.onSurfaceVariant, size: 20),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Manage seasonal fliers and 24-hour timed announcements.',
-                    style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            // Menu Items List Placeholder
-            Center(
-              child: Column(
-                children: [
-                  const Icon(Icons.restaurant_menu, size: 64, color: AppColors.outlineVariant),
-                  const SizedBox(height: 24),
-                  Text(
-                    'BUILDING THE MENU...',
-                    style: GoogleFonts.spaceGrotesk(color: AppColors.onSurfaceVariant, letterSpacing: 2),
-                  ),
-                ],
-              ),
-            ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primaryContainer,
+          labelColor: AppColors.primaryContainer,
+          unselectedLabelColor: AppColors.onSurfaceVariant,
+          tabs: const [
+            Tab(text: 'INVENTORY'),
+            Tab(text: 'TIMED FLIERS'),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildInventoryTab(),
+          _buildFliersTab(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_tabController.index == 0) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditMenuItemScreen()));
+          } else {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPromotionScreen()));
+          }
+        },
+        backgroundColor: AppColors.primaryContainer,
+        child: const Icon(Icons.add, color: Colors.black),
+      ),
+    );
+  }
+
+  Widget _buildInventoryTab() {
+    return Consumer<MenuViewModel>(
+      builder: (context, menuVM, _) {
+        if (menuVM.isLoading && menuVM.items.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(24),
+          itemCount: menuVM.items.length,
+          itemBuilder: (context, index) {
+            final item = menuVM.items[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildItemCard(item, menuVM),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFliersTab() {
+    return Consumer<MenuViewModel>(
+      builder: (context, menuVM, _) {
+        return ListView.builder(
+          padding: const EdgeInsets.all(24),
+          itemCount: menuVM.activePromotions.length,
+          itemBuilder: (context, index) {
+            final promo = menuVM.activePromotions[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildPromoCard(promo, menuVM),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildItemCard(MenuItem item, MenuViewModel vm) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            item.imageUrl,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
+          ),
+        ),
+        title: Text(item.name, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text('GHS ${item.price.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: AppColors.primaryContainer)),
+        trailing: Switch(
+          value: item.isAvailable,
+          onChanged: (val) => vm.saveMenuItem(MenuItem(
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            imageUrl: item.imageUrl,
+            category: item.category,
+            isAvailable: val,
+            prepTime: item.prepTime,
+          )),
+          activeColor: AppColors.primaryContainer,
+        ),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditMenuItemScreen(item: item))),
+      ),
+    );
+  }
+
+  Widget _buildPromoCard(PromotionModel promo, MenuViewModel vm) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: const Icon(Icons.campaign, color: AppColors.primaryContainer, size: 32),
+        title: Text(promo.title, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+        subtitle: Text('ID: ${promo.id.substring(0, 8)}', style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant, fontSize: 10)),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+          onPressed: () => vm.deletePromotion(promo.id),
+        ),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditPromotionScreen(promotion: promo))),
       ),
     );
   }

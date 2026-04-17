@@ -32,4 +32,9 @@ class PromotionService {
   Future<void> setPromotionStatus(String id, bool isActive) async {
     await _promotions.doc(id).update({'isActive': isActive});
   }
+
+  /// Administrator capability: Remove a promotion flier.
+  Future<void> deletePromotion(String id) async {
+    await _promotions.doc(id).delete();
+  }
 }

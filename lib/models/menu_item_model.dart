@@ -20,6 +20,7 @@ class MenuItem {
   final int reviewCount;
   final int stockCount;
   final bool isTrending;
+  final int prepTime;
 
   MenuItem({
     required this.id,

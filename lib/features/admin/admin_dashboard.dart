@@ -5,6 +5,8 @@ import '../../core/constants/app_colors.dart';
 import '../../services/order_service.dart';
 import '../../models/order_model.dart';
 import 'admin_scanner_screen.dart';
+import './admin_wallet_manager.dart';
+import './admin_menu_manager.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -54,6 +56,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     _buildStatCard('PENDING', pendingCount.toString(), AppColors.primaryContainer),
                     const SizedBox(width: 16),
                     _buildStatCard('READY', readyCount.toString(), Colors.greenAccent),
+                    const SizedBox(width: 16),
+                    _buildNavCard('MENU', Icons.restaurant_menu, () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMenuManager()));
+                    }),
                     const SizedBox(width: 16),
                     _buildNavCard('WALLET', Icons.account_balance_wallet, () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminWalletManager()));

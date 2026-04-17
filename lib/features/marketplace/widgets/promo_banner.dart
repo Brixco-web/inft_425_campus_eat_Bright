@@ -125,7 +125,7 @@ class PromoBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
       ),
       child: Text(
-        'EXPLORE NOW',
+        promo != null ? 'EXPLORE OFFER' : 'ORDER NOW',
         style: GoogleFonts.spaceGrotesk(
           color: Colors.black,
           fontSize: 12,
