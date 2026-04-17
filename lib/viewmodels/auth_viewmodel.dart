@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../services/firestore_service.dart';
 import '../../models/user_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
   
   UserModel? _currentUser;
   UserModel? get user => _currentUser;
@@ -40,6 +42,7 @@ class AuthViewModel extends ChangeNotifier {
 
         // 3. Profile Sync
         await _authService.syncUserProfile(credential!.user!);
+        _currentUser = await _firestoreService.getUser(credential.user!.uid);
       }
 
       _isLoading = false;
@@ -78,6 +81,7 @@ class AuthViewModel extends ChangeNotifier {
           studentId: studentId,
           phoneNumber: phoneNumber,
         );
+        _currentUser = await _firestoreService.getUser(credential.user!.uid);
       }
 
       _isLoading = false;
@@ -126,10 +130,17 @@ class AuthViewModel extends ChangeNotifier {
 
   String _handleAuthError(dynamic e) {
     final message = e.toString().toLowerCase();
-    if (message.contains('user-not-found')) return "ACCOUNT ERROR: Identification not found in the Loom.";
+    
+    // Modern Firebase Auth uses invalid-credential for both wrong password and wrong email to prevent enumeration
+    if (message.contains('invalid-credential')) return "ACCESS DENIED: Incorrect email or password.";
+    if (message.contains('user-not-found')) return "ACCOUNT ERROR: Identification not found in the system.";
     if (message.contains('wrong-password')) return "ACCESS DENIED: Invalid keyphrase.";
     if (message.contains('invalid-email')) return "ERROR: Invalid identifier format.";
-    return "SYSTEM ERROR: A distortion in the Loom occurred. Please try again.";
+    if (message.contains('network-request-failed')) return "CONNECTION ERROR: Please check your internet connection.";
+    if (message.contains('too-many-requests')) return "ACCESS DENIED: Too many failed attempts. Try again later.";
+    
+    // Fallback: show the actual error so we know what's wrong instead of hiding it
+    return "SYSTEM ERROR: ${e.toString()}";
   }
 }
 
