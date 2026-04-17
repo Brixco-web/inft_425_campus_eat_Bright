@@ -94,7 +94,7 @@ class MarketplaceDrawer extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
-        border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withOpacity(0.1))),
+        border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.1))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,16 +152,16 @@ class MarketplaceDrawer extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow.withOpacity(0.5),
+          color: AppColors.surfaceContainerLow.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 20),

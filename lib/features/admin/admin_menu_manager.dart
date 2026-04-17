@@ -122,7 +122,7 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
@@ -163,7 +163,7 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),

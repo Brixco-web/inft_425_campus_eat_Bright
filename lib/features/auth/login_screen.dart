@@ -6,9 +6,8 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../models/user_model.dart';
-import '../marketplace/marketplace_screen.dart';
 import '../dashboard/student_shell.dart';
-import '../admin/admin_dashboard.dart';
+import '../admin/admin_shell.dart';
 
 /// Two-phase login: Landing showcase → Glassmorphic auth card overlay.
 class LoginScreen extends StatefulWidget {
@@ -169,10 +168,10 @@ class _LoginScreenState extends State<LoginScreen>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.background.withOpacity(0.35),
-                  AppColors.background.withOpacity(0.15),
-                  AppColors.background.withOpacity(0.5),
-                  AppColors.background.withOpacity(0.85),
+                  AppColors.background.withValues(alpha: 0.35),
+                  AppColors.background.withValues(alpha: 0.15),
+                  AppColors.background.withValues(alpha: 0.5),
+                  AppColors.background.withValues(alpha: 0.85),
                 ],
                 stops: const [0.0, 0.3, 0.65, 1.0],
               ),
@@ -211,14 +210,14 @@ class _LoginScreenState extends State<LoginScreen>
                 height: d.size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surfaceContainerHigh.withOpacity(0.65),
+                  color: AppColors.surfaceContainerHigh.withValues(alpha: 0.65),
                   border: Border.all(
-                    color: AppColors.primaryContainer.withOpacity(0.2),
+                    color: AppColors.primaryContainer.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
+                      color: Colors.black.withValues(alpha: 0.25),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -269,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen>
               'Valley View University · Powered by Obsidian Loom',
               style: GoogleFonts.manrope(
                 fontSize: 10,
-                color: AppColors.onSurfaceVariant.withOpacity(0.3),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.3),
               ),
               textAlign: TextAlign.center,
             ),
@@ -290,8 +289,8 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              color: AppColors.background.withOpacity(0.55),
-              border: Border.all(color: AppColors.primaryContainer.withOpacity(0.15)),
+              color: AppColors.background.withValues(alpha: 0.55),
+              border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.15)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -317,8 +316,8 @@ class _LoginScreenState extends State<LoginScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: AppColors.background.withOpacity(0.55),
-                  border: Border.all(color: const Color(0xFF4ADE80).withOpacity(0.15)),
+                  color: AppColors.background.withValues(alpha: 0.55),
+                  border: Border.all(color: const Color(0xFF4ADE80).withValues(alpha: 0.15)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -327,7 +326,7 @@ class _LoginScreenState extends State<LoginScreen>
                       width: 6, height: 6,
                       decoration: BoxDecoration(
                         color: Color.lerp(
-                          const Color(0xFF4ADE80).withOpacity(0.3),
+                          const Color(0xFF4ADE80).withValues(alpha: 0.3),
                           const Color(0xFF4ADE80),
                           _pulseController.value,
                         ),
@@ -340,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen>
                       style: GoogleFonts.manrope(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF4ADE80).withOpacity(0.8),
+                        color: const Color(0xFF4ADE80).withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -383,7 +382,7 @@ class _LoginScreenState extends State<LoginScreen>
           style: GoogleFonts.manrope(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.onSurface.withOpacity(0.7),
+            color: AppColors.onSurface.withValues(alpha: 0.7),
             letterSpacing: 0.5,
           ),
           textAlign: TextAlign.center,
@@ -412,9 +411,9 @@ class _LoginScreenState extends State<LoginScreen>
                 height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: AppColors.background.withOpacity(0.5),
+                  color: AppColors.background.withValues(alpha: 0.5),
                   border: Border.all(
-                    color: AppColors.primaryContainer.withOpacity(0.15),
+                    color: AppColors.primaryContainer.withValues(alpha: 0.15),
                   ),
                 ),
                 child: Icon(f.icon, color: AppColors.primaryContainer, size: 22),
@@ -424,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen>
                 f.label,
                 style: GoogleFonts.manrope(
                   fontSize: 10,
-                  color: AppColors.onSurface.withOpacity(0.5),
+                  color: AppColors.onSurface.withValues(alpha: 0.5),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -472,7 +471,7 @@ class _LoginScreenState extends State<LoginScreen>
               onPressed: () => _openAuthCard(_AuthMode.signUp),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(
-                  color: AppColors.primaryContainer.withOpacity(0.4),
+                  color: AppColors.primaryContainer.withValues(alpha: 0.4),
                   width: 1.5,
                 ),
                 shape: RoundedRectangleBorder(
@@ -507,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen>
             GestureDetector(
               onTap: vm.isLoading ? null : _closeAuthCard,
               child: Container(
-                color: Colors.black.withOpacity(0.6 * _backdropOpacity.value),
+                color: Colors.black.withValues(alpha: 0.6 * _backdropOpacity.value),
               ),
             ),
 
@@ -541,15 +540,15 @@ class _LoginScreenState extends State<LoginScreen>
                                       child: Container(
                                         padding: const EdgeInsets.all(28),
                                         decoration: BoxDecoration(
-                                          color: AppColors.surfaceContainerHigh.withOpacity(0.85),
+                                          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.85),
                                           borderRadius: BorderRadius.circular(28),
                                           border: Border.all(
-                                            color: AppColors.primaryContainer.withOpacity(0.15),
+                                            color: AppColors.primaryContainer.withValues(alpha: 0.15),
                                             width: 1,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.35),
+                                              color: Colors.black.withValues(alpha: 0.35),
                                               blurRadius: 40,
                                               offset: const Offset(0, 16),
                                             ),
@@ -608,7 +607,7 @@ class _LoginScreenState extends State<LoginScreen>
             'Sign in to your account',
             style: GoogleFonts.manrope(
               fontSize: 13,
-              color: AppColors.onSurfaceVariant.withOpacity(0.6),
+              color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -647,7 +646,7 @@ class _LoginScreenState extends State<LoginScreen>
 
         // Stay Logged In Toggle
         Theme(
-          data: ThemeData(unselectedWidgetColor: AppColors.onSurfaceVariant.withOpacity(0.3)),
+          data: ThemeData(unselectedWidgetColor: AppColors.onSurfaceVariant.withValues(alpha: 0.3)),
           child: CheckboxListTile(
             value: _stayLoggedIn,
             onChanged: (val) => setState(() => _stayLoggedIn = val ?? true),
@@ -655,7 +654,7 @@ class _LoginScreenState extends State<LoginScreen>
               'Stay Logged In (Enables Biometrics)',
               style: GoogleFonts.manrope(
                 fontSize: 12,
-                color: AppColors.onSurfaceVariant.withOpacity(0.8),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
               ),
             ),
             contentPadding: EdgeInsets.zero,
@@ -682,7 +681,7 @@ class _LoginScreenState extends State<LoginScreen>
               'No account? ',
               style: GoogleFonts.manrope(
                 fontSize: 12,
-                color: AppColors.onSurfaceVariant.withOpacity(0.5),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ),
             GestureDetector(
@@ -730,7 +729,7 @@ class _LoginScreenState extends State<LoginScreen>
             'Create your Campus Eats account',
             style: GoogleFonts.manrope(
               fontSize: 13,
-              color: AppColors.onSurfaceVariant.withOpacity(0.6),
+              color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -773,7 +772,7 @@ class _LoginScreenState extends State<LoginScreen>
               'Already a member? ',
               style: GoogleFonts.manrope(
                 fontSize: 12,
-                color: AppColors.onSurfaceVariant.withOpacity(0.5),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ),
             GestureDetector(
@@ -813,7 +812,7 @@ class _LoginScreenState extends State<LoginScreen>
           'Welcome back, authenticate to continue.',
           style: GoogleFonts.manrope(
             fontSize: 13,
-            color: AppColors.onSurfaceVariant.withOpacity(0.6),
+            color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
           ),
           textAlign: TextAlign.center,
         ),
@@ -831,11 +830,11 @@ class _LoginScreenState extends State<LoginScreen>
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryContainer.withOpacity(0.08),
-                border: Border.all(color: AppColors.primaryContainer.withOpacity(0.25), width: 1),
+                color: AppColors.primaryContainer.withValues(alpha: 0.08),
+                border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.25), width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryContainer.withOpacity(0.1),
+                    color: AppColors.primaryContainer.withValues(alpha: 0.1),
                     blurRadius: 20,
                     spreadRadius: 2,
                   ),
@@ -869,7 +868,7 @@ class _LoginScreenState extends State<LoginScreen>
             _closeAuthCard();
           },
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.error.withOpacity(0.8),
+            foregroundColor: AppColors.error.withValues(alpha: 0.8),
           ),
           child: Text(
             'Switch Account / Log Out',
@@ -894,7 +893,7 @@ class _LoginScreenState extends State<LoginScreen>
         height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.surfaceContainerLow.withOpacity(0.6),
+          color: AppColors.surfaceContainerLow.withValues(alpha: 0.6),
         ),
         child: const Icon(Icons.close_rounded, size: 16, color: AppColors.onSurfaceVariant),
       ),
@@ -925,7 +924,7 @@ class _LoginScreenState extends State<LoginScreen>
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                   size: 18,
-                  color: AppColors.onSurfaceVariant.withOpacity(0.4),
+                  color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
                 ),
                 onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
               )
@@ -938,14 +937,14 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.2)),
+          borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primaryContainer, width: 1.5),
         ),
         labelStyle: GoogleFonts.manrope(
-          color: AppColors.onSurfaceVariant.withOpacity(0.8), // Better visibility
+          color: AppColors.onSurfaceVariant.withValues(alpha: 0.8), // Better visibility
           fontSize: 13,
         ),
         floatingLabelStyle: GoogleFonts.spaceGrotesk(
@@ -954,7 +953,7 @@ class _LoginScreenState extends State<LoginScreen>
           fontSize: 12,
         ),
         hintStyle: GoogleFonts.manrope(
-          color: AppColors.onSurfaceVariant.withOpacity(0.5), // Better visibility
+          color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), // Better visibility
           fontSize: 13,
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -1053,11 +1052,11 @@ class _LoginScreenState extends State<LoginScreen>
     final role = vm.user?.role ?? UserRole.student;
     if (role == UserRole.admin) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AdminShell()),
+        MaterialPageRoute(builder: (_) => AdminShell()),
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const StudentShell()),
+        MaterialPageRoute(builder: (_) => StudentShell()),
       );
     }
   }
@@ -1079,7 +1078,7 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),

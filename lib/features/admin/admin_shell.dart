@@ -59,7 +59,7 @@ class _AdminShellState extends State<AdminShell> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryContainer.withOpacity(0.4),
+            color: AppColors.primaryContainer.withValues(alpha: 0.4),
             blurRadius: 20,
             spreadRadius: 2,
             offset: const Offset(0, 8),
@@ -94,9 +94,9 @@ class _AdminShellState extends State<AdminShell> {
             height: 80,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHigh.withOpacity(0.8),
+              color: AppColors.surfaceContainerHigh.withValues(alpha: 0.8),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -1,9 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../viewmodels/wallet_viewmodel.dart';
 import 'admin_wallet_manager.dart';
 
 class FinancialCommandScreen extends StatefulWidget {
@@ -29,7 +27,7 @@ class _FinancialCommandScreenState extends State<FinancialCommandScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFC084FC).withOpacity(0.05),
+                color: const Color(0xFFC084FC).withValues(alpha: 0.05),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
@@ -94,14 +92,14 @@ class _FinancialCommandScreenState extends State<FinancialCommandScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.surfaceContainerHigh.withOpacity(0.8),
-                AppColors.surfaceContainerLow.withOpacity(0.5),
+                AppColors.surfaceContainerHigh.withValues(alpha: 0.8),
+                AppColors.surfaceContainerLow.withValues(alpha: 0.5),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Column(
             children: [
@@ -190,9 +188,9 @@ class _FinancialCommandScreenState extends State<FinancialCommandScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
@@ -237,15 +235,16 @@ class _FinancialCommandScreenState extends State<FinancialCommandScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.greenAccent.withOpacity(0.1),
+              color: Colors.greenAccent.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.arrow_upward_rounded, color: Colors.greenAccent, size: 16),

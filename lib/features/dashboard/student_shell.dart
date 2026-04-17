@@ -44,15 +44,15 @@ class _StudentShellState extends State<StudentShell> {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHigh.withOpacity(0.7),
+              color: AppColors.surfaceContainerHigh.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                color: AppColors.primaryContainer.withOpacity(0.15),
+                color: AppColors.primaryContainer.withValues(alpha: 0.15),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -85,13 +85,13 @@ class _StudentShellState extends State<StudentShell> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected 
-                ? AppColors.primaryContainer.withOpacity(0.1) 
+                ? AppColors.primaryContainer.withValues(alpha: 0.1) 
                 : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
               icon,
-              color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withOpacity(0.5),
+              color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withValues(alpha: 0.5),
               size: 24,
             ),
           ),
@@ -101,7 +101,7 @@ class _StudentShellState extends State<StudentShell> {
             style: GoogleFonts.manrope(
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withOpacity(0.5),
+              color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withValues(alpha: 0.5),
             ),
           ),
         ],

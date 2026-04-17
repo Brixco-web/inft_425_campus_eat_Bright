@@ -31,7 +31,7 @@ class _PriorityDashboardScreenState extends State<PriorityDashboardScreen> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryContainer.withOpacity(0.05),
+                color: AppColors.primaryContainer.withValues(alpha: 0.05),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
@@ -129,16 +129,16 @@ class _PriorityDashboardScreenState extends State<PriorityDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.5),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label.toUpperCase(),
-            style: GoogleFonts.spaceGrotesk(fontSize: 10, letterSpacing: 1, color: color.withOpacity(0.7), fontWeight: FontWeight.bold),
+            style: GoogleFonts.spaceGrotesk(fontSize: 10, letterSpacing: 1, color: color.withValues(alpha: 0.7), fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
@@ -188,10 +188,10 @@ class _PriorityDashboardScreenState extends State<PriorityDashboardScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isReady ? const Color(0xFF4ADE80).withOpacity(0.2) : AppColors.outlineVariant.withOpacity(0.05),
+          color: isReady ? const Color(0xFF4ADE80).withValues(alpha: 0.2) : AppColors.outlineVariant.withValues(alpha: 0.05),
           width: 1.5,
         ),
       ),
@@ -282,9 +282,9 @@ class _PriorityDashboardScreenState extends State<PriorityDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         status.name.toUpperCase(),

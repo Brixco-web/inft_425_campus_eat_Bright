@@ -7,7 +7,6 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/order_viewmodel.dart';
 import '../../viewmodels/wallet_viewmodel.dart';
 import '../orders/pickup_pass_screen.dart';
-import '../../models/order_model.dart';
 import '../../models/wallet_model.dart';
 
 class StudentProfileScreen extends StatelessWidget {
@@ -290,7 +289,7 @@ class StudentProfileScreen extends StatelessWidget {
               subtitle,
               style: GoogleFonts.manrope(
                 fontSize: 11,
-                color: AppColors.onSurfaceVariant.withOpacity(0.6),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -341,7 +340,7 @@ class StudentProfileScreen extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: transactions.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final tx = transactions[index];
               return _buildTransactionItem(tx);
@@ -355,7 +354,7 @@ class StudentProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

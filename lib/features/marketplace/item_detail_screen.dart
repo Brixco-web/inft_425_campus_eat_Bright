@@ -77,9 +77,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.3),
+                  Colors.black.withValues(alpha: 0.3),
                   Colors.transparent,
-                  AppColors.background.withOpacity(0.8),
+                  AppColors.background.withValues(alpha: 0.8),
                   AppColors.background,
                 ],
                 stops: const [0, 0.4, 0.9, 1],
@@ -124,9 +124,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Icon(icon, color: Colors.white, size: 20),
           ),
@@ -161,7 +161,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             Text(
               widget.item.description,
               style: GoogleFonts.manrope(
-                color: AppColors.onSurfaceVariant.withOpacity(0.7),
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                 height: 1.6,
                 fontSize: 15,
               ),
@@ -196,9 +196,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.5),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,9 +219,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer.withOpacity(0.1),
+                  color: AppColors.primaryContainer.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   'GHS ${widget.item.price.toStringAsFixed(2)}',
@@ -283,13 +283,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: isSelected 
-              ? AppColors.primaryContainer.withOpacity(0.1) 
-              : AppColors.surfaceContainerHigh.withOpacity(0.3),
+              ? AppColors.primaryContainer.withValues(alpha: 0.1) 
+              : AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected 
-                ? AppColors.primaryContainer.withOpacity(0.5) 
-                : AppColors.outlineVariant.withOpacity(0.05),
+                ? AppColors.primaryContainer.withValues(alpha: 0.5) 
+                : AppColors.outlineVariant.withValues(alpha: 0.05),
             ),
           ),
           child: Row(
@@ -312,7 +312,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 Text(
                   '+GHS ${opt.price.toStringAsFixed(2)}',
                   style: GoogleFonts.manrope(
-                    color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withOpacity(0.5),
+                    color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withValues(alpha: 0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -346,7 +346,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -399,8 +399,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.background.withOpacity(0),
-              AppColors.background.withOpacity(0.95),
+              AppColors.background.withValues(alpha: 0),
+              AppColors.background.withValues(alpha: 0.95),
               AppColors.background,
             ],
           ),
@@ -426,7 +426,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               elevation: 8,
-              shadowColor: AppColors.primaryContainer.withOpacity(0.4),
+              shadowColor: AppColors.primaryContainer.withValues(alpha: 0.4),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

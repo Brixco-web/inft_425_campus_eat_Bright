@@ -27,7 +27,7 @@ class _MagicScannerScreenState extends State<MagicScannerScreen> {
         final orderId = barcode.rawValue!;
         try {
           // In a real app, you'd verify if the QR is a valid Obsidian Order ID
-          await _orderService.collectOrder(orderId);
+          await _orderService.completeOrderHandshake(orderId, orderId);
           
           if (mounted) {
             _showSuccessDialog();
@@ -52,7 +52,7 @@ class _MagicScannerScreenState extends State<MagicScannerScreen> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: AppColors.surfaceContainerHigh.withOpacity(0.9),
+          backgroundColor: AppColors.surfaceContainerHigh.withValues(alpha: 0.9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -117,7 +117,7 @@ class _MagicScannerScreenState extends State<MagicScannerScreen> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   child: IconButton(
                     icon: const Icon(Icons.close_rounded, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
@@ -137,7 +137,7 @@ class _MagicScannerScreenState extends State<MagicScannerScreen> {
         // Darkened areas
         ColorFiltered(
           colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.7),
             BlendMode.srcOut,
           ),
           child: Stack(
@@ -170,7 +170,7 @@ class _MagicScannerScreenState extends State<MagicScannerScreen> {
             width: 280,
             height: 280,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryContainer.withOpacity(0.5), width: 2),
+              border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.5), width: 2),
               borderRadius: BorderRadius.circular(40),
             ),
             child: Stack(

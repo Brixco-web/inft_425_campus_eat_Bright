@@ -131,7 +131,7 @@ class _AddEditPromotionScreenState extends State<AddEditPromotionScreen> {
                 height: 180,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Image.network(
@@ -196,7 +196,7 @@ class _AddEditPromotionScreenState extends State<AddEditPromotionScreen> {
           style: GoogleFonts.manrope(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.manrope(color: AppColors.onSurfaceVariant.withOpacity(0.5)),
+            hintStyle: GoogleFonts.manrope(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
             filled: true,
             fillColor: AppColors.surfaceContainerLow,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

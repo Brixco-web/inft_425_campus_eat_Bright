@@ -96,7 +96,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryContainer.withOpacity(0.4),
+                  color: AppColors.primaryContainer.withValues(alpha: 0.4),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
@@ -144,7 +144,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           center: const Alignment(-0.8, -0.6),
           radius: 1.2,
           colors: [
-            AppColors.primaryContainer.withOpacity(0.05),
+            AppColors.primaryContainer.withValues(alpha: 0.05),
             AppColors.surfaceContainerLowest,
           ],
         ),
@@ -163,7 +163,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             height: 300,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.secondaryContainer.withOpacity(0.03),
+              color: AppColors.secondaryContainer.withValues(alpha: 0.03),
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
@@ -228,7 +228,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
       ),
       child: const CircleAvatar(
         radius: 20,
@@ -245,8 +245,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surface.withOpacity(0.4),
-            border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+            color: AppColors.surface.withValues(alpha: 0.4),
+            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
             borderRadius: BorderRadius.circular(16),
           ),
           child: TextField(
@@ -358,9 +358,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [

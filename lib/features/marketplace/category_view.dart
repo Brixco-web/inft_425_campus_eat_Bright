@@ -51,7 +51,7 @@ class CategoryViewScreen extends StatelessWidget {
             Text(
               'Category Specifics Under Construction',
               style: GoogleFonts.manrope(
-                color: AppColors.onSurface.withOpacity(0.5),
+                color: AppColors.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],

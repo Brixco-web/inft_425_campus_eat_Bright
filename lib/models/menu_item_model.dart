@@ -110,6 +110,43 @@ class MenuItem {
         return 'Drinks';
     }
   }
+
+  /// Creates a copy of this MenuItem with the given fields replaced.
+  MenuItem copyWith({
+    String? id,
+    String? name,
+    String? description,
+    double? price,
+    String? imageUrl,
+    MenuCategory? category,
+    List<String>? ingredients,
+    List<String>? allergens,
+    bool? isAvailable,
+    double? rating,
+    int? reviewCount,
+    int? stockCount,
+    bool? isTrending,
+    int? prepTime,
+    List<MenuOption>? options,
+  }) {
+    return MenuItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      category: category ?? this.category,
+      ingredients: ingredients ?? this.ingredients,
+      allergens: allergens ?? this.allergens,
+      isAvailable: isAvailable ?? this.isAvailable,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      stockCount: stockCount ?? this.stockCount,
+      isTrending: isTrending ?? this.isTrending,
+      prepTime: prepTime ?? this.prepTime,
+      options: options ?? this.options,
+    );
+  }
 }
 
 class MenuOption {

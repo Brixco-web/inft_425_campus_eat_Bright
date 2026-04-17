@@ -86,7 +86,7 @@ class _WalletScreenState extends State<WalletScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryContainer.withOpacity(0.3),
+            color: AppColors.primaryContainer.withValues(alpha: 0.3),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -98,7 +98,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Text(
             'CURRENT BALANCE',
             style: GoogleFonts.spaceGrotesk(
-              color: AppColors.onPrimary.withOpacity(0.6),
+              color: AppColors.onPrimary.withValues(alpha: 0.6),
               letterSpacing: 2,
               fontWeight: FontWeight.bold,
             ),
@@ -125,14 +125,14 @@ class _WalletScreenState extends State<WalletScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: (isDeposit ? Colors.greenAccent : Colors.orangeAccent).withOpacity(0.1),
+              color: (isDeposit ? Colors.greenAccent : Colors.orangeAccent).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(

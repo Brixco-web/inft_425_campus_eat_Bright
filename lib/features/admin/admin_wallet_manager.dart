@@ -134,7 +134,7 @@ class _AdminWalletManagerState extends State<AdminWalletManager> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

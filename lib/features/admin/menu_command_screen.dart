@@ -46,7 +46,7 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryContainer.withOpacity(0.05),
+                color: AppColors.primaryContainer.withValues(alpha: 0.05),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
@@ -110,7 +110,7 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.5),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TabBar(
@@ -171,9 +171,9 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.05)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -184,7 +184,7 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
               width: 80,
               height: 80,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.white10, child: const Icon(Icons.fastfood, color: Colors.white38)),
+          errorBuilder: (context, error, stackTrace) => Container(color: Colors.white10, child: const Icon(Icons.fastfood, color: Colors.white38)),
             ),
           ),
           const SizedBox(width: 16),
@@ -208,7 +208,7 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
               Switch.adaptive(
                 value: item.isAvailable,
                 onChanged: (val) => vm.saveMenuItem(item.copyWith(isAvailable: val)),
-                activeColor: AppColors.primaryContainer,
+                activeTrackColor: AppColors.primaryContainer,
               ),
               IconButton(
                 icon: const Icon(Icons.edit_note_rounded, color: Colors.white38),
@@ -239,16 +239,16 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.05)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withOpacity(0.1),
+              color: AppColors.primaryContainer.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(Icons.campaign_rounded, color: AppColors.primaryContainer),
@@ -259,7 +259,7 @@ class _MenuCommandScreenState extends State<MenuCommandScreen> with SingleTicker
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(promo.title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-                Text(promo.description, style: GoogleFonts.manrope(fontSize: 12, color: Colors.white30), maxLines: 1),
+                Text(promo.subtitle, style: GoogleFonts.manrope(fontSize: 12, color: Colors.white30), maxLines: 1),
               ],
             ),
           ),

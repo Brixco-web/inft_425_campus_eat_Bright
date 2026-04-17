@@ -70,7 +70,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Text(
             'Your collection of past & active looms',
             style: GoogleFonts.manrope(
-              color: AppColors.onSurface.withOpacity(0.5),
+              color: AppColors.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],

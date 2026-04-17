@@ -37,4 +37,26 @@ class WalletViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> processTransaction({
+    required String title,
+    required double amount,
+    required TransactionType type,
+  }) async {
+    if (_wallet == null) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (type == TransactionType.purchase) {
+        // Use title as orderId for now or extend service
+        await _walletService.deductBalance(_wallet!.userId, amount, title);
+      } else {
+        // Handle other types if needed
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

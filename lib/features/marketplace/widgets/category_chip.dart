@@ -30,13 +30,13 @@ class CategoryChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
             color: isSelected 
-                ? AppColors.primaryContainer.withOpacity(0.15)
-                : AppColors.surface.withOpacity(0.3),
+                ? AppColors.primaryContainer.withValues(alpha: 0.15)
+                : AppColors.surface.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected 
-                  ? AppColors.primaryContainer.withOpacity(0.5)
-                  : AppColors.outlineVariant.withOpacity(0.1),
+                  ? AppColors.primaryContainer.withValues(alpha: 0.5)
+                  : AppColors.outlineVariant.withValues(alpha: 0.1),
               width: 1.5,
             ),
           ),

@@ -41,7 +41,7 @@ class PickUpPassScreen extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryContainer.withOpacity(0.05),
+                color: AppColors.primaryContainer.withValues(alpha: 0.05),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
@@ -76,7 +76,7 @@ class PickUpPassScreen extends StatelessWidget {
                   'Show this QR code at the collection point once your order is marked "Ready".',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.manrope(
-                    color: AppColors.onSurfaceVariant.withOpacity(0.6),
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                     fontSize: 12,
                     height: 1.5,
                   ),
@@ -94,9 +94,9 @@ class PickUpPassScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -111,7 +111,7 @@ class PickUpPassScreen extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            order.status.toUpperCase(),
+            order.status.name.toUpperCase(),
             style: GoogleFonts.spaceGrotesk(
               color: statusColor,
               fontWeight: FontWeight.bold,
@@ -128,12 +128,12 @@ class PickUpPassScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withOpacity(0.4),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -164,7 +164,6 @@ class PickUpPassScreen extends StatelessWidget {
   }
 
   List<Widget> _buildCorners() {
-    const double size = 20;
     const double offset = -10;
     return [
       Positioned(top: offset, left: offset, child: _corner(0)),
@@ -207,7 +206,7 @@ class PickUpPassScreen extends StatelessWidget {
             '${order.items.length} Items · GHS ${order.totalAmount.toStringAsFixed(2)}',
             style: GoogleFonts.manrope(
               fontSize: 14,
-              color: AppColors.onSurfaceVariant.withOpacity(0.6),
+              color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -215,8 +214,8 @@ class PickUpPassScreen extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
+  Color _getStatusColor(OrderStatus status) {
+    switch (status.name.toLowerCase()) {
       case 'ready':
         return const Color(0xFF4ADE80);
       case 'processing':
