@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +9,7 @@ import '../../models/user_model.dart';
 import '../marketplace/marketplace_screen.dart';
 import '../admin/admin_dashboard.dart';
 
+/// Two-phase login: Landing showcase → Glassmorphic auth card overlay.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,96 +17,147 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+enum _AuthMode { none, signIn, signUp }
+
+class _LoginScreenState extends State<LoginScreen>
+    with TickerProviderStateMixin {
+  // Controllers
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _studentIdController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _obscurePassword = true;
+
+  // State
+  _AuthMode _authMode = _AuthMode.none;
+
+  // Animations
+  late AnimationController _pulseController;
+  late AnimationController _floatController;
+  late AnimationController _cardController;
+  late Animation<double> _cardScale;
+  late Animation<double> _cardOpacity;
+  late Animation<double> _backdropOpacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _floatController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+
+    _cardController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _cardScale = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _cardController, curve: Curves.easeOutBack),
+    );
+    _cardOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _cardController, curve: Curves.easeOut),
+    );
+    _backdropOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _cardController, curve: Curves.easeOut),
+    );
+  }
 
   @override
   void dispose() {
+    _pulseController.dispose();
+    _floatController.dispose();
+    _cardController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _nameController.dispose();
+    _studentIdController.dispose();
+    _phoneController.dispose();
+    _confirmController.dispose();
     super.dispose();
+  }
+
+  void _openAuthCard(_AuthMode mode) {
+    setState(() => _authMode = mode);
+    _cardController.forward(from: 0);
+  }
+
+  void _closeAuthCard() {
+    _cardController.reverse().then((_) {
+      setState(() {
+        _authMode = _AuthMode.none;
+        _emailController.clear();
+        _passwordController.clear();
+        _nameController.clear();
+        _studentIdController.clear();
+        _phoneController.clear();
+        _confirmController.clear();
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>();
+    final authVm = context.watch<AuthViewModel>();
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Immersive Background Layer
-          _buildImmersiveBackground(size),
+          // ── Layer 1: Full-bleed food hero image ──
+          _buildHeroBackground(size),
 
-          // 2. Atmospheric Orbs (Glow)
-          _buildAtmosphericOrbs(size),
+          // ── Layer 2: Floating food bubbles ──
+          _buildFloatingFoodBubbles(size),
 
-          // 3. Main Content
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        children: [
-                          // Top Branding Header
-                          _buildTopBranding(context),
+          // ── Layer 3: Landing content (brand, features, CTAs) ──
+          _buildLandingContent(context, size),
 
-                          const Spacer(),
+          // ── Layer 4: Glassmorphic auth card overlay ──
+          if (_authMode != _AuthMode.none)
+            _buildAuthOverlay(context, authVm, size),
 
-                          // Login Card (Glassmorphism)
-                          _buildLoginPanel(context, authViewModel, size),
-                          
-                          // Bottom Spacing for Mobile
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // 4. Global Error Overlay
-          if (authViewModel.error != null) _buildErrorSnackbar(context, authViewModel),
+          // ── Layer 5: Error toast ──
+          if (authVm.error != null) _buildErrorToast(context, authVm),
         ],
       ),
     );
   }
 
-  Widget _buildImmersiveBackground(Size size) {
-    return Container(
-      width: size.width,
-      height: size.height,
+  // ─────────────────────────────────────────────
+  //  LAYER 1: Hero food background
+  // ─────────────────────────────────────────────
+  Widget _buildHeroBackground(Size size) {
+    return SizedBox.expand(
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          // The cinematic culinary hero image
           Image.asset(
             'assets/images/cuisine_hero.png',
-            width: size.width,
-            height: size.height,
             fit: BoxFit.cover,
           ),
-          // Deep atmospheric gradient overlay
+          // Dark cinematic overlay so text is readable
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
                 colors: [
-                  AppColors.background,
-                  AppColors.background.withOpacity(0.7),
-                  AppColors.background.withOpacity(0.2),
+                  AppColors.background.withOpacity(0.35),
+                  AppColors.background.withOpacity(0.15),
+                  AppColors.background.withOpacity(0.5),
+                  AppColors.background.withOpacity(0.85),
                 ],
-                stops: const [0.0, 0.4, 1.0],
+                stops: const [0.0, 0.3, 0.65, 1.0],
               ),
             ),
           ),
@@ -113,684 +166,834 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildAtmosphericOrbs(Size size) {
-    return Stack(
-      children: [
-        Positioned(
-          top: size.height * 0.25,
-          right: -80,
-          child: Container(
-            width: 256,
-            height: 256,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primaryContainer.withOpacity(0.05),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: -80,
-          left: -80,
-          child: Container(
-            width: 384,
-            height: 384,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primaryContainer.withOpacity(0.1),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 150, sigmaY: 150),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // ─────────────────────────────────────────────
+  //  LAYER 2: Floating food bubbles
+  // ─────────────────────────────────────────────
+  Widget _buildFloatingFoodBubbles(Size size) {
+    final dishes = [
+      _Bubble('🍛', 0.05, 0.22, 52),
+      _Bubble('🥘', 0.78, 0.15, 46),
+      _Bubble('🍗', 0.65, 0.38, 42),
+      _Bubble('🥤', 0.10, 0.45, 40),
+      _Bubble('🍰', 0.85, 0.42, 38),
+      _Bubble('🥗', 0.40, 0.12, 44),
+    ];
 
-  Widget _buildTopBranding(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'CAMPUS EATS',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color: AppColors.primaryContainer,
-                  fontSize: 32,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'THE OBSIDIAN LOOM',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  letterSpacing: 4.0,
-                ),
-              ),
-            ],
-          ),
-          // System Status (Admin View Simulation)
-          const HiddenOnMobile(
-            child: Row(
-              children: [
-                Text(
-                  'SYSTEM ONLINE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    color: Color(0x99DCE3E8),
-                  ),
-                ),
-                SizedBox(width: 16),
-                StatusOrb(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginPanel(BuildContext context, AuthViewModel vm, Size size) {
-    return Container(
-      width: size.width,
-      decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.8),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border(
-          top: BorderSide(
-            color: AppColors.outlineVariant.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
-            child: Column(
-              children: [
-                // Top Indicator Decor
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.outlineVariant.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth > 700) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildWelcomeText(context),
-                                const SizedBox(height: 32),
-                                _buildKitchenStatusCard(context),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 48),
-                          Expanded(child: _buildLoginForm(context, vm)),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          _buildWelcomeText(context),
-                          const SizedBox(height: 32),
-                          _buildKitchenStatusCard(context),
-                          const SizedBox(height: 48),
-                          _buildLoginForm(context, vm),
-                        ],
-                      );
-                    }
-                  },
-                ),
-                
-                const SizedBox(height: 48),
-                _buildFooter(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildKitchenStatusCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primaryContainer.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.restaurant_menu, color: AppColors.primaryContainer, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'KITCHEN STATUS: ACTIVE',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                    letterSpacing: 2.0,
-                    color: AppColors.primaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Today\'s Special: Charcoal-Grilled Jollof',
-                  style: GoogleFonts.manrope(
-                    fontSize: 13,
-                    color: AppColors.onSurface.withOpacity(0.8),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const StatusOrb(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomeText(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'ACCESS PORTAL',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: AppColors.primaryContainer,
-            letterSpacing: 3.0,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'The Kitchen Awaits',
-          style: Theme.of(context).textTheme.displayMedium,
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Experience the rhythm of Afro-modernist dining. Fresh ingredients, digital precision.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 32),
-        Row(
-          children: [
-            Container(width: 48, height: 1, color: AppColors.outlineVariant.withOpacity(0.3)),
-            const SizedBox(width: 12),
-            Text(
-              'SECURE COMMAND LINK',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.outline,
-                letterSpacing: 2.0,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginForm(BuildContext context, AuthViewModel vm) {
-    return Column(
-      children: [
-        TextField(
-          controller: _emailController,
-          style: GoogleFonts.manrope(color: AppColors.onSurface),
-          decoration: const InputDecoration(
-            labelText: 'STUDENT IDENTIFIER',
-            hintText: 'campus.id@university.edu',
-            prefixIcon: Icon(Icons.alternate_email, size: 20, color: Color(0x80FFE16D)),
-          ),
-        ),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          style: GoogleFonts.manrope(color: AppColors.onSurface),
-          decoration: InputDecoration(
-            labelText: 'SECURE KEYPHRASE',
-            hintText: '••••••••••••',
-            prefixIcon: const Icon(Icons.lock_outline, size: 20, color: Color(0x80FFE16D)),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                size: 20,
-                color: AppColors.onSurfaceVariant.withOpacity(0.5),
-              ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'KEEP SESSION',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                'LOST ACCESS?',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.primaryFixedDim,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: vm.isLoading 
-              ? null 
-              : () async {
-                  final success = await vm.login(_emailController.text, _passwordController.text);
-                  if (success && context.mounted) {
-                    final role = vm.user?.role ?? UserRole.student;
-                    if (role == UserRole.admin) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const AdminDashboard()),
-                      );
-                    } else {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
-                      );
-                    }
-                  } else if (context.mounted && vm.error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(vm.error!),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                  }
-                },
-            child: vm.isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimaryContainer),
-                )
-              : const Text('ENTER THE KITCHEN'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Column(
-      children: [
-        Divider(color: AppColors.outlineVariant.withOpacity(0.1)),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'NEW PARTICIPANT?',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.onSurfaceVariant.withOpacity(0.4),
-              ),
-            ),
-            OutlinedButton(
-              onPressed: () => _showRegistrationSheet(context),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.primaryContainer.withOpacity(0.3)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              ),
-              child: Text(
-                'CREATE ACCOUNT',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.primaryContainer,
-                  letterSpacing: 2.0,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  void _showRegistrationSheet(BuildContext context) {
-    final regNameController = TextEditingController();
-    final regIdController = TextEditingController();
-    final regEmailController = TextEditingController();
-    final regPhoneController = TextEditingController();
-    final regPasswordController = TextEditingController();
-    final regConfirmController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return Consumer<AuthViewModel>(
-          builder: (ctx, vm, _) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-              ),
+    return AnimatedBuilder(
+      animation: _floatController,
+      builder: (context, _) {
+        final t = _floatController.value;
+        return Stack(
+          children: dishes.map((d) {
+            final drift = sin(t * pi * 2 + d.size) * 5;
+            return Positioned(
+              left: size.width * d.x,
+              top: size.height * d.y + drift,
               child: Container(
-                padding: const EdgeInsets.all(32),
+                width: d.size,
+                height: d.size,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerHigh,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                  shape: BoxShape.circle,
+                  color: AppColors.surfaceContainerHigh.withOpacity(0.65),
                   border: Border.all(
-                    color: AppColors.outlineVariant.withOpacity(0.1),
+                    color: AppColors.primaryContainer.withOpacity(0.2),
+                    width: 1.5,
                   ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Drag Handle
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.outlineVariant.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Title
-                    Text(
-                      'JOIN THE LOOM',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryContainer,
-                        letterSpacing: 3.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Create your Campus Eats account to join the Obsidian Loom ecosystem.',
-                      style: GoogleFonts.manrope(
-                        fontSize: 14,
-                        color: AppColors.onSurfaceVariant.withOpacity(0.6),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Full Name Field
-                    TextField(
-                      controller: regNameController,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'FULL NAME',
-                        hintText: 'John Doe',
-                        prefixIcon: Icon(Icons.person_outline, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Student ID Field
-                    TextField(
-                      controller: regIdController,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'STUDENT ID',
-                        hintText: '20210001',
-                        prefixIcon: Icon(Icons.badge_outlined, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const SizedBox(height: 32),
-
-                    // Email Field
-                    TextField(
-                      controller: regEmailController,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'CAMPUS EMAIL',
-                        hintText: 'student@vvu.edu.gh',
-                        prefixIcon: Icon(Icons.alternate_email, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Password Field
-                    TextField(
-                      controller: regPasswordController,
-                      obscureText: true,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'CREATE KEYPHRASE',
-                        hintText: '••••••••••••',
-                        prefixIcon: Icon(Icons.lock_outline, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Phone Number Field
-                    TextField(
-                      controller: regPhoneController,
-                      keyboardType: TextInputType.phone,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'COMMAND PHONE',
-                        hintText: '+233 ...',
-                        prefixIcon: Icon(Icons.phone_android, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Confirm Password Field
-                    TextField(
-                      controller: regConfirmController,
-                      obscureText: true,
-                      style: GoogleFonts.manrope(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'CONFIRM KEYPHRASE',
-                        hintText: '••••••••••••',
-                        prefixIcon: Icon(Icons.lock_reset, size: 20, color: Color(0x80FFE16D)),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Register Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: vm.isLoading
-                            ? null
-                            : () async {
-                                // Validation
-                                if (regPasswordController.text != regConfirmController.text) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Keyphrases do not match.'),
-                                      backgroundColor: Colors.redAccent,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (regPasswordController.text.length < 6) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Keyphrase must be at least 6 characters.'),
-                                      backgroundColor: Colors.redAccent,
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                final success = await vm.register(
-                                  email: regEmailController.text.trim(),
-                                  password: regPasswordController.text,
-                                  displayName: regNameController.text.trim(),
-                                  studentId: regIdController.text.trim(),
-                                  phoneNumber: regPhoneController.text.trim(),
-                                );
-
-                                if (success && sheetContext.mounted) {
-                                  Navigator.of(sheetContext).pop(); // Close sheet
-                                  if (context.mounted) {
-                                    final role = vm.user?.role ?? UserRole.student;
-                                    if (role == UserRole.admin) {
-                                      Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(builder: (_) => const AdminDashboard()),
-                                      );
-                                    } else {
-                                      Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
-                                      );
-                                    }
-                                  }
-                                } else if (sheetContext.mounted && vm.error != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(vm.error!),
-                                      backgroundColor: Colors.redAccent,
-                                    ),
-                                  );
-                                }
-                              },
-                        child: vm.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.onPrimaryContainer,
-                                ),
-                              )
-                            : const Text('CREATE ACCOUNT'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                   ],
+                ),
+                child: Center(
+                  child: Text(d.emoji, style: TextStyle(fontSize: d.size * 0.4)),
                 ),
               ),
             );
-          },
+          }).toList(),
         );
       },
     );
   }
 
-  Widget _buildErrorSnackbar(BuildContext context, AuthViewModel vm) {
-    return Positioned(
-      top: 100,
-      left: 20,
-      right: 20,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.errorContainer,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.error_outline, color: AppColors.error),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                vm.error!,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+  // ─────────────────────────────────────────────
+  //  LAYER 3: Landing content
+  // ─────────────────────────────────────────────
+  Widget _buildLandingContent(BuildContext context, Size size) {
+    return SafeArea(
+      child: Column(
+        children: [
+          // Top bar: logo + status
+          _buildTopBar(context),
+
+          const Spacer(),
+
+          // Center branding
+          _buildBranding(context),
+
+          const SizedBox(height: 32),
+
+          // Feature showcase row
+          _buildFeatureChips(),
+
+          const Spacer(),
+
+          // CTA buttons
+          _buildCtaButtons(context),
+
+          const SizedBox(height: 16),
+
+          // Legal footer
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Valley View University · Powered by Obsidian Loom',
+              style: GoogleFonts.manrope(
+                fontSize: 10,
+                color: AppColors.onSurfaceVariant.withOpacity(0.3),
               ),
+              textAlign: TextAlign.center,
             ),
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white70),
-              onPressed: () => vm.clearError(), // Assuming clearError exists
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class HiddenOnMobile extends StatelessWidget {
-  final Widget child;
-  const HiddenOnMobile({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.of(context).size.width < 600) return const SizedBox.shrink();
-    return child;
-  }
-}
-
-class StatusOrb extends StatelessWidget {
-  const StatusOrb({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: const BoxDecoration(
-        color: AppColors.primaryContainer,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFFFFD700),
-            blurRadius: 10,
-            spreadRadius: 2,
           ),
         ],
       ),
     );
   }
+
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Logo pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: AppColors.background.withOpacity(0.55),
+              border: Border.all(color: AppColors.primaryContainer.withOpacity(0.15)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.restaurant_rounded, color: AppColors.primaryContainer, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Campus Eats',
+                  style: GoogleFonts.epilogue(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Status pill
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, _) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.background.withOpacity(0.55),
+                  border: Border.all(color: const Color(0xFF4ADE80).withOpacity(0.15)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6, height: 6,
+                      decoration: BoxDecoration(
+                        color: Color.lerp(
+                          const Color(0xFF4ADE80).withOpacity(0.3),
+                          const Color(0xFF4ADE80),
+                          _pulseController.value,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Kitchen Open',
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF4ADE80).withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranding(BuildContext context) {
+    return Column(
+      children: [
+        // App name
+        Text(
+          'CAMPUS\nEATS',
+          style: GoogleFonts.epilogue(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: AppColors.onSurface,
+            height: 1.0,
+            letterSpacing: 2,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 60,
+          height: 3,
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradient,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Order Fresh · Track Live · Pick Up Fast',
+          style: GoogleFonts.manrope(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.onSurface.withOpacity(0.7),
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureChips() {
+    final features = [
+      _Feature(Icons.restaurant_menu_rounded, 'Fresh Menu'),
+      _Feature(Icons.delivery_dining_rounded, 'Quick Pickup'),
+      _Feature(Icons.qr_code_scanner_rounded, 'QR Orders'),
+      _Feature(Icons.account_balance_wallet_rounded, 'Wallet'),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: features.map((f) {
+          return Column(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.background.withOpacity(0.5),
+                  border: Border.all(
+                    color: AppColors.primaryContainer.withOpacity(0.15),
+                  ),
+                ),
+                child: Icon(f.icon, color: AppColors.primaryContainer, size: 22),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                f.label,
+                style: GoogleFonts.manrope(
+                  fontSize: 10,
+                  color: AppColors.onSurface.withOpacity(0.5),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCtaButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          // Primary: Sign In
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () => _openAuthCard(_AuthMode.signIn),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryContainer,
+                foregroundColor: AppColors.onPrimaryContainer,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                'Sign In',
+                style: GoogleFonts.epilogue(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Secondary: Create Account
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: OutlinedButton(
+              onPressed: () => _openAuthCard(_AuthMode.signUp),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: AppColors.primaryContainer.withOpacity(0.4),
+                  width: 1.5,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                'Create Account',
+                style: GoogleFonts.epilogue(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: AppColors.primaryContainer,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  //  LAYER 4: Glassmorphic auth card overlay
+  // ─────────────────────────────────────────────
+  Widget _buildAuthOverlay(BuildContext context, AuthViewModel vm, Size size) {
+    return AnimatedBuilder(
+      animation: _cardController,
+      builder: (context, _) {
+        return Stack(
+          children: [
+            // Dark backdrop (tap to dismiss)
+            GestureDetector(
+              onTap: vm.isLoading ? null : _closeAuthCard,
+              child: Container(
+                color: Colors.black.withOpacity(0.6 * _backdropOpacity.value),
+              ),
+            ),
+
+            // Centered glassmorphic card (Scrolls fully if keyboard pushes it out of bounds)
+            Positioned.fill(
+              child: SafeArea(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                          top: 20,
+                          left: 20,
+                          right: 20,
+                        ),
+                        child: Center(
+                          child: Opacity(
+                            opacity: _cardOpacity.value,
+                            child: Transform.scale(
+                              scale: _cardScale.value,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 420),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(28),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surfaceContainerHigh.withOpacity(0.85),
+                                          borderRadius: BorderRadius.circular(28),
+                                          border: Border.all(
+                                            color: AppColors.primaryContainer.withOpacity(0.15),
+                                            width: 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.35),
+                                              blurRadius: 40,
+                                              offset: const Offset(0, 16),
+                                            ),
+                                          ],
+                                        ),
+                                        // The form contents (no inner scroll view needed anymore)
+                                        child: _authMode == _AuthMode.signIn
+                                            ? _buildSignInForm(context, vm)
+                                            : _buildSignUpForm(context, vm),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── Sign In Form ──
+  Widget _buildSignInForm(BuildContext context, AuthViewModel vm) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Close button row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Welcome Back',
+              style: GoogleFonts.epilogue(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.onSurface,
+              ),
+            ),
+            _buildCloseButton(),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Sign in to your account',
+            style: GoogleFonts.manrope(
+              fontSize: 13,
+              color: AppColors.onSurfaceVariant.withOpacity(0.6),
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        _buildField(_emailController, 'Email', 'student@vvu.edu.gh',
+            Icons.alternate_email_rounded,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next),
+        const SizedBox(height: 16),
+        _buildField(_passwordController, 'Password', '••••••••',
+            Icons.lock_outline_rounded,
+            isPassword: true),
+        const SizedBox(height: 8),
+
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 0),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Forgot Password?',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppColors.primaryFixedDim,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        _buildSubmitButton(
+          label: 'Sign In',
+          isLoading: vm.isLoading,
+          onPressed: () => _handleSignIn(vm),
+        ),
+        const SizedBox(height: 16),
+
+        // Switch mode text
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'No account? ',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppColors.onSurfaceVariant.withOpacity(0.5),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() => _authMode = _AuthMode.signUp);
+              },
+              child: Text(
+                'Sign Up',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: AppColors.primaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Sign Up Form ──
+  Widget _buildSignUpForm(BuildContext context, AuthViewModel vm) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Join Us',
+              style: GoogleFonts.epilogue(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.onSurface,
+              ),
+            ),
+            _buildCloseButton(),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Create your Campus Eats account',
+            style: GoogleFonts.manrope(
+              fontSize: 13,
+              color: AppColors.onSurfaceVariant.withOpacity(0.6),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        _buildField(
+            _nameController, 'Full Name', 'John Doe', Icons.person_outline_rounded),
+        const SizedBox(height: 14),
+        _buildField(
+            _studentIdController, 'Student ID', '20210001', Icons.badge_outlined),
+        const SizedBox(height: 14),
+        _buildField(_emailController, 'Campus Email', 'student@vvu.edu.gh',
+            Icons.alternate_email_rounded,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next),
+        const SizedBox(height: 14),
+        _buildField(_phoneController, 'Phone', '+233 ...', Icons.phone_android_rounded,
+            keyboardType: TextInputType.phone),
+        const SizedBox(height: 14),
+        _buildField(_passwordController, 'Password', '••••••••',
+            Icons.lock_outline_rounded,
+            isPassword: true),
+        const SizedBox(height: 14),
+        _buildField(_confirmController, 'Confirm Password', '••••••••',
+            Icons.lock_reset_rounded,
+            isPassword: true),
+        const SizedBox(height: 24),
+
+        _buildSubmitButton(
+          label: 'Create Account',
+          isLoading: vm.isLoading,
+          onPressed: () => _handleSignUp(vm),
+        ),
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Already a member? ',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppColors.onSurfaceVariant.withOpacity(0.5),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() => _authMode = _AuthMode.signIn);
+              },
+              child: Text(
+                'Sign In',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: AppColors.primaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  //  Shared widgets
+  // ─────────────────────────────────────────────
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: _closeAuthCard,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.surfaceContainerLow.withOpacity(0.6),
+        ),
+        child: const Icon(Icons.close_rounded, size: 16, color: AppColors.onSurfaceVariant),
+      ),
+    );
+  }
+
+  Widget _buildField(
+    TextEditingController controller,
+    String label,
+    String hint,
+    IconData icon, {
+    bool isPassword = false,
+    TextInputType keyboardType = TextInputType.text,
+    TextInputAction? textInputAction,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword ? _obscurePassword : false,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      style: GoogleFonts.manrope(color: AppColors.onSurface, fontSize: 14),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, size: 20, color: AppColors.primaryFixed),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  size: 18,
+                  color: AppColors.onSurfaceVariant.withOpacity(0.4),
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              )
+            : null,
+        filled: true,
+        fillColor: const Color(0xFF1E2125), // Solid dark grey so fields contrast against glassmorphism
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none, // Removed border for cleaner look
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.outlineVariant.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primaryContainer, width: 1.5),
+        ),
+        labelStyle: GoogleFonts.manrope(
+          color: AppColors.onSurfaceVariant.withOpacity(0.8), // Better visibility
+          fontSize: 13,
+        ),
+        floatingLabelStyle: GoogleFonts.spaceGrotesk(
+          color: AppColors.primaryContainer,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+        hintStyle: GoogleFonts.manrope(
+          color: AppColors.onSurfaceVariant.withOpacity(0.5), // Better visibility
+          fontSize: 13,
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton({
+    required String label,
+    required bool isLoading,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryContainer,
+          foregroundColor: AppColors.onPrimaryContainer,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 20, width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.onPrimaryContainer,
+                ),
+              )
+            : Text(
+                label,
+                style: GoogleFonts.epilogue(fontWeight: FontWeight.w800, fontSize: 15),
+              ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  //  Auth handlers
+  // ─────────────────────────────────────────────
+  Future<void> _handleSignIn(AuthViewModel vm) async {
+    final success = await vm.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+    if (success && mounted) {
+      _navigateAfterAuth(vm);
+    } else if (mounted && vm.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.error!), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+  Future<void> _handleSignUp(AuthViewModel vm) async {
+    if (_passwordController.text != _confirmController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final success = await vm.register(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      displayName: _nameController.text.trim(),
+      studentId: _studentIdController.text.trim(),
+      phoneNumber: _phoneController.text.trim(),
+    );
+
+    if (success && mounted) {
+      _navigateAfterAuth(vm);
+    } else if (mounted && vm.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.error!), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+  void _navigateAfterAuth(AuthViewModel vm) {
+    final role = vm.user?.role ?? UserRole.student;
+    if (role == UserRole.admin) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  Error toast
+  // ─────────────────────────────────────────────
+  Widget _buildErrorToast(BuildContext context, AuthViewModel vm) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 16,
+      left: 20,
+      right: 20,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.errorContainer,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  vm.error!,
+                  style: GoogleFonts.manrope(
+                    color: AppColors.onErrorContainer,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 18),
+                onPressed: () => vm.clearError(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
+// ─────────────────────────────────────────────
+//  Data models
+// ─────────────────────────────────────────────
+class _Bubble {
+  final String emoji;
+  final double x, y, size;
+  const _Bubble(this.emoji, this.x, this.y, this.size);
+}
+
+class _Feature {
+  final IconData icon;
+  final String label;
+  const _Feature(this.icon, this.label);
+}
