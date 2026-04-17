@@ -82,27 +82,31 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       width: size.width,
       height: size.height,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBW7hki1GRaYQ7OThPW9LDkVoTGTJ4tlug1_FHk2mgsQyRaq7DSHNd_40l_XWPIwr7eq0QDXq7AYkxroQuWh0bh3amfx-9X8Hrk4qu71TaUIDICDQuIgz78HS72kywmePjjvgsubTzftmGLX_TBtsKqgunwixZC7ecJ7xvKEqZRSdQjt9NfiZjhXzx2DYYOaNxN1vrA8kUAu03Mi9HNTxpOryzKiQs43LFvUPnuM4G7FSO4JEQ-njvQTiH-ZAxIhRlq0GPtdp1OSVw',
+      child: Stack(
+        children: [
+          // The cinematic culinary hero image
+          Image.asset(
+            'assets/images/cuisine_hero.png',
+            width: size.width,
+            height: size.height,
+            fit: BoxFit.cover,
           ),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [
-              AppColors.surfaceContainerLowest,
-              AppColors.surfaceContainerLowest.withOpacity(0.4),
-              AppColors.surfaceContainerLowest.withOpacity(0.2),
-            ],
-            stops: const [0.1, 0.5, 1.0],
+          // Deep atmospheric gradient overlay
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  AppColors.background,
+                  AppColors.background.withOpacity(0.7),
+                  AppColors.background.withOpacity(0.2),
+                ],
+                stops: const [0.0, 0.4, 1.0],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -198,11 +202,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       width: size.width,
       decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.6),
+        color: AppColors.surface.withOpacity(0.8),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border(
           top: BorderSide(
-            color: AppColors.outlineVariant.withOpacity(0.15),
+            color: AppColors.outlineVariant.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -210,19 +214,38 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
           child: Padding(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
             child: Column(
               children: [
-                // Layout for Desktop/Tablet would be Row, for Mobile Column
+                // Top Indicator Decor
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.outlineVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                
                 LayoutBuilder(
                   builder: (context, constraints) {
                     if (constraints.maxWidth > 700) {
                       return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _buildWelcomeText(context)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildWelcomeText(context),
+                                const SizedBox(height: 32),
+                                _buildKitchenStatusCard(context),
+                              ],
+                            ),
+                          ),
                           const SizedBox(width: 48),
                           Expanded(child: _buildLoginForm(context, vm)),
                         ],
@@ -231,6 +254,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       return Column(
                         children: [
                           _buildWelcomeText(context),
+                          const SizedBox(height: 32),
+                          _buildKitchenStatusCard(context),
                           const SizedBox(height: 48),
                           _buildLoginForm(context, vm),
                         ],
@@ -245,6 +270,56 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildKitchenStatusCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primaryContainer.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.restaurant_menu, color: AppColors.primaryContainer, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'KITCHEN STATUS: ACTIVE',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                    letterSpacing: 2.0,
+                    color: AppColors.primaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Today\'s Special: Charcoal-Grilled Jollof',
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    color: AppColors.onSurface.withOpacity(0.8),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const StatusOrb(),
+        ],
       ),
     );
   }
