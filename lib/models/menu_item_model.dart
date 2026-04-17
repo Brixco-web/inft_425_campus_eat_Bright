@@ -16,9 +16,10 @@ class MenuItem {
   final List<String> ingredients;
   final List<String> allergens;
   final bool isAvailable;
-  final int prepTime; // in minutes
   final double rating;
   final int reviewCount;
+  final int stockCount;
+  final bool isTrending;
 
   MenuItem({
     required this.id,
@@ -33,6 +34,8 @@ class MenuItem {
     this.prepTime = 15,
     this.rating = 0.0,
     this.reviewCount = 0,
+    this.stockCount = 10,
+    this.isTrending = false,
   });
 
   factory MenuItem.fromMap(Map<String, dynamic> data, String documentId) {
@@ -49,6 +52,8 @@ class MenuItem {
       prepTime: data['prepTime'] ?? 15,
       rating: (data['rating'] ?? 0.0).toDouble(),
       reviewCount: data['reviewCount'] ?? 0,
+      stockCount: data['stockCount'] ?? 10,
+      isTrending: data['isTrending'] ?? false,
     );
   }
 
@@ -65,6 +70,8 @@ class MenuItem {
       'prepTime': prepTime,
       'rating': rating,
       'reviewCount': reviewCount,
+      'stockCount': stockCount,
+      'isTrending': isTrending,
     };
   }
 

@@ -4,9 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
-import 'viewmodels/auth_viewmodel.dart';
-import 'viewmodels/menu_viewmodel.dart';
-import 'features/auth/login_screen.dart';
+import 'viewmodels/cart_viewmodel.dart';
+import 'viewmodels/order_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +24,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => MenuViewModel()),
+        ChangeNotifierProvider(create: (_) => CartViewModel()),
+        ChangeNotifierProvider(create: (_) => OrderViewModel()),
       ],
       child: const CampusEatsApp(),
     ),

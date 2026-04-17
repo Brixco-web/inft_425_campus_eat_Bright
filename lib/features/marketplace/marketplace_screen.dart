@@ -4,12 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../viewmodels/menu_viewmodel.dart';
-import '../../models/menu_item_model.dart';
-import '../../models/promotion_model.dart';
-import 'widgets/category_chip.dart';
-import 'widgets/food_card.dart';
-import 'widgets/promo_banner.dart';
+import '../../viewmodels/cart_viewmodel.dart';
+import 'checkout_screen.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -30,10 +26,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   @override
   Widget build(BuildContext context) {
     final menuViewModel = context.watch<MenuViewModel>();
+    final cartViewModel = context.watch<CartViewModel>();
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: _buildCartFAB(context, cartViewModel),
       body: Stack(
         children: [
           // 1. Immersive Background
@@ -63,6 +61,65 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCartFAB(BuildContext context, CartViewModel cartVM) {
+    if (cartVM.itemCount == 0) return const SizedBox.shrink();
+
+    return Hero(
+      tag: 'cart_fab',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CheckoutScreen()),
+          ),
+          child: Container(
+            height: 70,
+            width: 70,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryContainer.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(Icons.shopping_basket_rounded, color: Colors.black, size: 28),
+                Positioned(
+                  top: 15,
+                  right: 15,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    child: Text(
+                      cartVM.itemCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

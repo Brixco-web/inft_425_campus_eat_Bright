@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/menu_item_model.dart';
+import '../item_detail_screen.dart';
 
 class FoodCard extends StatelessWidget {
   final MenuItem item;
@@ -12,70 +13,94 @@ class FoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.1),
-          width: 1,
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ItemDetailScreen(item: item),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          // 1. Food Image
-          Positioned.fill(
-            child: item.imageUrl.isNotEmpty
-                ? Image.network(
-                    item.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                  )
-                : _buildPlaceholder(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.outlineVariant.withValues(alpha: 0.1),
+            width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            // 1. Food Image
+            Positioned.fill(
+              child: Hero(
+                tag: 'food_${item.id}',
+                child: item.imageUrl.isNotEmpty
+                    ? Image.network(
+                        item.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                      )
+                    : _buildPlaceholder(),
+              ),
+            ),
 
-          // 2. Heat Overlay (Darken image for text readability)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.7),
-                  ],
+            // 2. Heat Overlay
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.1),
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // 3. Prep Time Badge
-          Positioned(
-            top: 12,
-            right: 12,
-            child: _buildBadge(
-              icon: Icons.access_time_filled,
-              text: '${item.prepTime}m',
+            // 3. Status Badges (Heatmap)
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (item.isTrending)
+                    _buildBadge(
+                      icon: Icons.whatshot,
+                      text: 'TRENDING',
+                      color: Colors.orangeAccent,
+                    ),
+                  _buildBadge(
+                    icon: Icons.inventory_2_outlined,
+                    text: '${item.stockCount} LEFT',
+                    color: item.stockCount < 5 ? Colors.redAccent : AppColors.primaryContainer,
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // 4. Content (Footer)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildFooter(),
-          ),
-        ],
+            // 4. Content (Footer)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _buildFooter(),
+            ),
+          ],
+        ),
       ),
     );
   }
