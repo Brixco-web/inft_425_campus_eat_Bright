@@ -21,6 +21,7 @@ class MenuItem {
   final int stockCount;
   final bool isTrending;
   final int prepTime;
+  final List<MenuOption> options;
 
   MenuItem({
     required this.id,
@@ -37,9 +38,11 @@ class MenuItem {
     this.reviewCount = 0,
     this.stockCount = 10,
     this.isTrending = false,
+    this.options = const [],
   });
 
   factory MenuItem.fromMap(Map<String, dynamic> data, String documentId) {
+    var opts = (data['options'] as List?)?.map((o) => MenuOption.fromMap(o)).toList() ?? [];
     return MenuItem(
       id: documentId,
       name: data['name'] ?? '',
@@ -55,6 +58,7 @@ class MenuItem {
       reviewCount: data['reviewCount'] ?? 0,
       stockCount: data['stockCount'] ?? 10,
       isTrending: data['isTrending'] ?? false,
+      options: opts,
     );
   }
 
@@ -73,6 +77,7 @@ class MenuItem {
       'reviewCount': reviewCount,
       'stockCount': stockCount,
       'isTrending': isTrending,
+      'options': options.map((e) => e.toMap()).toList(),
     };
   }
 
@@ -91,7 +96,6 @@ class MenuItem {
     }
   }
 
-  /// Helper to get a display string for the category
   String get categoryDisplay {
     switch (category) {
       case MenuCategory.campusGems:
@@ -105,5 +109,29 @@ class MenuItem {
       case MenuCategory.drinks:
         return 'Drinks';
     }
+  }
+}
+
+class MenuOption {
+  final String name;
+  final double price;
+  final bool isDefault;
+
+  MenuOption({required this.name, required this.price, this.isDefault = false});
+
+  factory MenuOption.fromMap(Map<String, dynamic> map) {
+    return MenuOption(
+      name: map['name'] ?? '',
+      price: (map['price'] ?? 0.0).toDouble(),
+      isDefault: map['isDefault'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'price': price,
+      'isDefault': isDefault,
+    };
   }
 }

@@ -58,6 +58,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               // Promotional Carousel (Waakye Thursday, etc.)
               _buildSliverPromotions(menuViewModel),
 
+              // Services Bento
+              _buildSliverServices(),
+
               // Categories Selector
               _buildSliverCategories(menuViewModel),
 
@@ -296,6 +299,82 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             autoPlayInterval: const Duration(seconds: 5),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSliverServices() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ELITE SERVICES',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 12,
+                letterSpacing: 2,
+                color: Colors.white38,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildServiceItem(
+                    icon: Icons.restaurant_rounded,
+                    title: 'Resto',
+                    color: const Color(0xFFFF6B6B),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildServiceItem(
+                    icon: Icons.coffee_rounded,
+                    title: 'Cafe',
+                    color: const Color(0xFFFFD93D),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildServiceItem(
+                    icon: Icons.shopping_basket_rounded,
+                    title: 'Grocery',
+                    color: const Color(0xFF6BCB77),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServiceItem({required IconData icon, required String title, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: GoogleFonts.manrope(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white70,
+            ),
+          ),
+        ],
       ),
     );
   }

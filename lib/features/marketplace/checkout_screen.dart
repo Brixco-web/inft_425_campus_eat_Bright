@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,7 @@ import '../../viewmodels/order_viewmodel.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/cart_viewmodel.dart';
 import '../../viewmodels/menu_viewmodel.dart';
+import '../../viewmodels/wallet_viewmodel.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/order_model.dart';
 import '../orders/my_bookings_screen.dart';
@@ -20,6 +22,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isLectureMode = false;
   TimeOfDay _pickupTime = TimeOfDay.now();
+  String _paymentMethod = 'Wallet'; // Default
 
   @override
   Widget build(BuildContext context) {
@@ -27,32 +30,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final menuVM = context.watch<MenuViewModel>();
     final orderVM = context.watch<OrderViewModel>();
     final authVM = context.watch<AuthViewModel>();
-    final total = cartVM.calculateTotal(menuVM.items);
+    final walletVM = context.watch<WalletViewModel>();
+    
+    final subtotal = cartVM.calculateTotal(menuVM.items);
+    const serviceFee = 2.00;
+    final total = subtotal + serviceFee;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Decor
-          _buildBackgroundDecor(),
+          // Background Aesthetic
+          _buildBackgroundGradient(),
 
           CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
               _buildSliverAppBar(context),
               
               if (cartVM.items.isEmpty)
                 _buildEmptyState()
               else ...[
+                _buildSectionHeader('YOUR BASKET'),
                 _buildCartList(cartVM, menuVM),
-                _buildSmartFeatures(),
-                _buildOrderSummary(total),
-                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                
+                _buildSectionHeader('PICK-UP STRATEGY'),
+                _buildSmartOptions(),
+                
+                _buildSectionHeader('PAYMENT METHOD'),
+                _buildPaymentOptions(walletVM),
+                
+                _buildSectionHeader('ORDER SUMMARY'),
+                _buildOrderSummary(subtotal, serviceFee, total),
+                
+                const SliverToBoxAdapter(child: SizedBox(height: 140)),
               ],
             ],
           ),
 
           if (cartVM.items.isNotEmpty)
-            _buildStickyFooter(context, authVM, cartVM, menuVM, orderVM, total),
+            _buildActionFooter(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
             
           if (orderVM.isLoading)
             _buildLoadingOverlay(),
@@ -61,25 +78,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildLoadingOverlay() {
-    return Container(
-      color: Colors.black54,
-      child: const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryContainer),
-      ),
-    );
-  }
-
-  Widget _buildBackgroundDecor() {
-    return Positioned(
-      top: -100,
-      right: -50,
+  Widget _buildBackgroundGradient() {
+    return Positioned.fill(
       child: Container(
-        width: 300,
-        height: 300,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.primaryContainer.withOpacity(0.05),
+          gradient: RadialGradient(
+            center: const Alignment(0.8, -0.6),
+            radius: 1.2,
+            colors: [
+              AppColors.primaryContainer.withOpacity(0.08),
+              AppColors.background,
+            ],
+          ),
         ),
       ),
     );
@@ -92,15 +102,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       pinned: true,
       centerTitle: true,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+        icon: const Icon(Icons.close_rounded, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        'CHECKOUT BASKET',
+        'SMART CHECKOUT',
         style: GoogleFonts.spaceGrotesk(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
-          letterSpacing: 2,
+          letterSpacing: 4,
+          color: AppColors.primaryContainer,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+        child: Text(
+          title,
+          style: GoogleFonts.spaceGrotesk(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 2,
+            color: Colors.white38,
+          ),
         ),
       ),
     );
@@ -112,11 +140,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
-            const SizedBox(height: 16),
+            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.white.withOpacity(0.05)),
+            const SizedBox(height: 24),
             Text(
-              'Your basket is empty.',
-              style: GoogleFonts.spaceGrotesk(color: Colors.white38),
+              'Your basket is as light as air.',
+              style: GoogleFonts.manrope(color: Colors.white24),
             ),
           ],
         ),
@@ -126,7 +154,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildCartList(CartViewModel cartVM, MenuViewModel menuVM) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -144,23 +172,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildCartItem(BuildContext context, CartViewModel cartVM, MenuItem item, int quantity) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surfaceContainerHigh.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Image.network(
               item.imageUrl,
-              width: 80,
-              height: 80,
+              width: 70,
+              height: 70,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
+              errorBuilder: (_, __, ___) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
             ),
           ),
           const SizedBox(width: 16),
@@ -170,23 +198,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 Text(
                   item.name,
-                  style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 Text(
-                  '₵ ${item.price.toStringAsFixed(2)}',
-                  style: GoogleFonts.manrope(color: AppColors.primaryContainer, fontWeight: FontWeight.bold),
+                  'GHS ${item.price.toStringAsFixed(2)}',
+                  style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ],
             ),
           ),
-          Column(
+          Row(
             children: [
-              _buildQtyAction(Icons.add, () => cartVM.addItem(item.id)),
+              _buildQtyBtn(Icons.remove, () => cartVM.removeItem(item.id)),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(quantity.toString(), style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('$quantity', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold)),
               ),
-              _buildQtyAction(Icons.remove, () => cartVM.removeItem(item.id)),
+              _buildQtyBtn(Icons.add, () => cartVM.addItem(item.id)),
             ],
           ),
         ],
@@ -194,71 +222,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildQtyAction(IconData icon, VoidCallback onTap) {
+  Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, size: 16, color: Colors.white),
+        child: Icon(icon, size: 14, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildSmartFeatures() {
+  Widget _buildSmartOptions() {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Divider(color: Colors.white10, height: 40),
-            Text(
-              'SMART FEATURES',
-              style: GoogleFonts.spaceGrotesk(letterSpacing: 2, fontSize: 12, color: AppColors.primaryContainer),
-            ),
-            const SizedBox(height: 16),
-            _buildFeatureTile(
+            _buildFeatureCard(
+              icon: Icons.school_rounded,
               title: 'Lecture Mode',
-              subtitle: 'Schedule pickup around your class',
-              icon: Icons.school_outlined,
+              subtitle: 'Optimized for back-to-back classes',
               trailing: Switch(
                 value: _isLectureMode,
-                onChanged: (val) => setState(() => _isLectureMode = val),
-                activeThumbColor: AppColors.primaryContainer,
+                onChanged: (v) => setState(() => _isLectureMode = v),
+                activeColor: AppColors.primaryContainer,
               ),
             ),
             if (_isLectureMode) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               _buildTimeSelector(),
             ],
-            const SizedBox(height: 12),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFeatureTile({required String title, required String subtitle, required IconData icon, required Widget trailing}) {
+  Widget _buildFeatureCard({required IconData icon, required String title, required String subtitle, required Widget trailing}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surfaceContainerHigh.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.onSurfaceVariant),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.primaryContainer, size: 20),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold)),
-                Text(subtitle, style: GoogleFonts.manrope(fontSize: 12, color: AppColors.onSurfaceVariant)),
+                Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
+                Text(subtitle, style: GoogleFonts.manrope(fontSize: 11, color: Colors.white38)),
               ],
             ),
           ),
@@ -275,15 +303,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (time != null) setState(() => _pickupTime = time);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Pickup at:', style: GoogleFonts.manrope()),
+            Text('Collection Time', style: GoogleFonts.manrope(fontSize: 13)),
             Text(
               _pickupTime.format(context),
               style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold),
@@ -294,44 +322,110 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildOrderSummary(double total) {
+  Widget _buildPaymentOptions(WalletViewModel walletVM) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
           children: [
-            _summaryRow('Subtotal', '₵ ${total.toStringAsFixed(2)}'),
-            const SizedBox(height: 8),
-            _summaryRow('Loom Service Fee', '₵ 2.00'),
-            const Divider(color: Colors.white10, height: 32),
-            _summaryRow('Grand Total', '₵ ${(total + 2.00).toStringAsFixed(2)}', isBold: true),
+            Expanded(
+              child: _buildPaymentTile(
+                'Wallet', 
+                Icons.account_balance_wallet_rounded, 
+                'GHS ${walletVM.balance.toStringAsFixed(2)}',
+                _paymentMethod == 'Wallet',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildPaymentTile(
+                'Cash', 
+                Icons.payments_rounded, 
+                'At Pickup',
+                _paymentMethod == 'Cash',
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _summaryRow(String label, String value, {bool isBold = false}) {
-    final style = isBold
-        ? GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 18)
-        : GoogleFonts.manrope(color: AppColors.onSurfaceVariant);
+  Widget _buildPaymentTile(String id, IconData icon, String subtitle, bool isSelected) {
+    return InkWell(
+      onTap: () => setState(() => _paymentMethod = id),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryContainer.withOpacity(0.1) : AppColors.surfaceContainerHigh.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant.withOpacity(0.1)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isSelected ? AppColors.primaryContainer : Colors.white24),
+            const SizedBox(height: 8),
+            Text(id, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(subtitle, style: GoogleFonts.manrope(fontSize: 10, color: Colors.white38)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderSummary(double subtotal, double fee, double total) {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHigh.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.outlineVariant.withOpacity(0.05)),
+        ),
+        child: Column(
+          children: [
+            _summaryRow('Subtotal', 'GHS ${subtotal.toStringAsFixed(2)}'),
+            const SizedBox(height: 12),
+            _summaryRow('Service Fee', 'GHS ${fee.toStringAsFixed(2)}'),
+            const Divider(color: Colors.white10, height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total Payable', style: GoogleFonts.epilogue(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  'GHS ${total.toStringAsFixed(2)}', 
+                  style: GoogleFonts.epilogue(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.primaryContainer)
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
-        Text(value, style: style),
+        Text(label, style: GoogleFonts.manrope(color: Colors.white38, fontSize: 13)),
+        Text(value, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
       ],
     );
   }
 
-  Widget _buildStickyFooter(
-    BuildContext context,
-    AuthViewModel authVM,
-    CartViewModel cartVM,
-    MenuViewModel menuVM,
+  Widget _buildActionFooter(
+    BuildContext context, 
+    AuthViewModel authVM, 
+    CartViewModel cartVM, 
+    MenuViewModel menuVM, 
     OrderViewModel orderVM,
+    WalletViewModel walletVM,
     double total,
   ) {
+    final canPay = _paymentMethod == 'Cash' || walletVM.balance >= total;
+
     return Positioned(
       bottom: 0,
       left: 0,
@@ -343,69 +437,134 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.transparent,
+              AppColors.background.withOpacity(0),
               AppColors.background.withOpacity(0.95),
               AppColors.background,
             ],
           ),
         ),
-        child: ElevatedButton(
-          onPressed: () async {
-            final user = authVM.user;
-            if (user == null) return;
-
-            final List<OrderItem> orderItems = [];
-            cartVM.items.forEach((itemId, quantity) {
-              final item = menuVM.items.firstWhere((m) => m.id == itemId);
-              orderItems.add(OrderItem(
-                itemId: itemId,
-                name: item.name,
-                quantity: quantity,
-                price: item.price,
-              ));
-            });
-
-            DateTime? pickup;
-            if (_isLectureMode) {
-              final now = DateTime.now();
-              pickup = DateTime(now.year, now.month, now.day, _pickupTime.hour, _pickupTime.minute);
-            }
-
-            final success = await orderVM.placeOrder(
-              userId: user.uid,
-              studentName: user.displayName,
-              items: orderItems,
-              totalAmount: total + 2.00,
-              pickupTime: pickup,
-              isLectureMode: _isLectureMode,
-            );
-
-            if (success && context.mounted) {
-              cartVM.clearCart();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
-              );
-            } else if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(orderVM.errorMessage ?? 'Order placement failed.'),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!canPay)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Insufficient funds in Obsidian Wallet',
+                  style: GoogleFonts.manrope(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryContainer,
-            foregroundColor: Colors.black,
-            minimumSize: const Size(double.infinity, 64),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: Text(
-            'PAY WITH OBSIDIAN WALLET',
-            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, letterSpacing: 1),
-          ),
+              ),
+            SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: (orderVM.isLoading || !canPay) ? null : () => _handlePlaceOrder(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryContainer,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 8,
+                ),
+                child: Text(
+                  'CONFIRM ORDER',
+                  style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800, letterSpacing: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handlePlaceOrder(
+    BuildContext context,
+    AuthViewModel authVM,
+    CartViewModel cartVM,
+    MenuViewModel menuVM,
+    OrderViewModel orderVM,
+    WalletViewModel walletVM,
+    double total,
+  ) async {
+    final user = authVM.user;
+    if (user == null) return;
+
+    final List<OrderItem> orderItems = [];
+    cartVM.items.forEach((itemId, quantity) {
+      final item = menuVM.items.firstWhere((m) => m.id == itemId);
+      orderItems.add(OrderItem(
+        itemId: itemId,
+        name: item.name,
+        quantity: quantity,
+        price: item.price,
+      ));
+    });
+
+    DateTime? pickup;
+    if (_isLectureMode) {
+      final now = DateTime.now();
+      pickup = DateTime(now.year, now.month, now.day, _pickupTime.hour, _pickupTime.minute);
+    }
+
+    final success = await orderVM.placeOrder(
+      userId: user.uid,
+      studentName: user.displayName,
+      items: orderItems,
+      totalAmount: total,
+      pickupTime: pickup,
+      isLectureMode: _isLectureMode,
+    );
+
+    if (success && context.mounted) {
+      // Deduct from wallet if applicable
+      if (_paymentMethod == 'Wallet') {
+        walletVM.processTransaction(
+          title: 'Order Payment',
+          amount: total,
+          type: TransactionType.debit,
+        );
+      }
+      
+      cartVM.clearCart();
+      
+      // show success then navigate
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Loom Order Secured! Track it in your bookings.'),
+          backgroundColor: AppColors.primaryContainer,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+      );
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(orderVM.errorMessage ?? 'Transaction failed in the loom.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black87,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: AppColors.primaryContainer),
+            const SizedBox(height: 24),
+            Text(
+              'WEAVING YOUR ORDER...',
+              style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, letterSpacing: 4, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );

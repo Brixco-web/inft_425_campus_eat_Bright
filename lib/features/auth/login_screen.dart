@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../models/user_model.dart';
 import '../marketplace/marketplace_screen.dart';
+import '../dashboard/student_shell.dart';
 import '../admin/admin_dashboard.dart';
 
 /// Two-phase login: Landing showcase → Glassmorphic auth card overlay.
@@ -17,7 +18,7 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-enum _AuthMode { none, signIn, signUp }
+enum _AuthMode { none, signIn, signUp, unlock }
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
@@ -32,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   // State
   _AuthMode _authMode = _AuthMode.none;
+  bool _stayLoggedIn = true;
 
   // Animations
   late AnimationController _pulseController;
@@ -68,6 +70,21 @@ class _LoginScreenState extends State<LoginScreen>
     _backdropOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _cardController, curve: Curves.easeOut),
     );
+
+    // Initial check for returning user
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAutoLogin());
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final authVm = context.read<AuthViewModel>();
+    final needsUnlock = await authVm.checkInitialAuth();
+    if (!needsUnlock && authVm.uid != null) {
+      // User is already logged in (stay logged in without biometrics)
+      if (mounted) _navigateAfterAuth(authVm);
+    } else if (authVm.useBiometrics && authVm.isBiometricAvailable) {
+      // Show unlock card
+      if (mounted) _openAuthCard(_AuthMode.unlock);
+    }
   }
 
   @override
@@ -541,7 +558,9 @@ class _LoginScreenState extends State<LoginScreen>
                                         // The form contents (no inner scroll view needed anymore)
                                         child: _authMode == _AuthMode.signIn
                                             ? _buildSignInForm(context, vm)
-                                            : _buildSignUpForm(context, vm),
+                                            : _authMode == _AuthMode.signUp
+                                                ? _buildSignUpForm(context, vm)
+                                                : _buildUnlockForm(context, vm),
                                       ),
                                     ),
                                   ),
@@ -624,7 +643,29 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
+
+        // Stay Logged In Toggle
+        Theme(
+          data: ThemeData(unselectedWidgetColor: AppColors.onSurfaceVariant.withOpacity(0.3)),
+          child: CheckboxListTile(
+            value: _stayLoggedIn,
+            onChanged: (val) => setState(() => _stayLoggedIn = val ?? true),
+            title: Text(
+              'Stay Logged In (Enables Biometrics)',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppColors.onSurfaceVariant.withOpacity(0.8),
+              ),
+            ),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: AppColors.primaryContainer,
+            dense: true,
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+        const SizedBox(height: 12),
 
         _buildSubmitButton(
           label: 'Sign In',
@@ -754,6 +795,94 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // ── Unlock Form ──
+  Widget _buildUnlockForm(BuildContext context, AuthViewModel vm) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Security Check',
+          style: GoogleFonts.epilogue(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.onSurface,
+          ).copyWith(letterSpacing: 1),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Welcome back, authenticate to continue.',
+          style: GoogleFonts.manrope(
+            fontSize: 13,
+            color: AppColors.onSurfaceVariant.withOpacity(0.6),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 48),
+        
+        // Large Biometric Icon Button
+        Center(
+          child: GestureDetector(
+            onTap: () async {
+              final ok = await vm.authenticateWithBiometrics();
+              if (ok && mounted) _navigateAfterAuth(vm);
+            },
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryContainer.withOpacity(0.08),
+                border: Border.all(color: AppColors.primaryContainer.withOpacity(0.25), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryContainer.withOpacity(0.1),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.fingerprint_rounded,
+                size: 56,
+                color: AppColors.primaryContainer,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 48),
+        
+        _buildSubmitButton(
+          label: 'Unlock with Biometrics',
+          isLoading: vm.isLoading,
+          onPressed: () async {
+            final ok = await vm.authenticateWithBiometrics();
+            if (ok && mounted) _navigateAfterAuth(vm);
+          },
+        ),
+        
+        const SizedBox(height: 20),
+        
+        TextButton(
+          onPressed: () async {
+            await vm.logout();
+            _closeAuthCard();
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.error.withOpacity(0.8),
+          ),
+          child: Text(
+            'Switch Account / Log Out',
+            style: GoogleFonts.manrope(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ─────────────────────────────────────────────
   //  Shared widgets
   // ─────────────────────────────────────────────
@@ -872,6 +1001,7 @@ class _LoginScreenState extends State<LoginScreen>
     final success = await vm.login(
       _emailController.text.trim(),
       _passwordController.text,
+      stayLoggedIn: _stayLoggedIn,
     );
     if (success && mounted) {
       _navigateAfterAuth(vm);
@@ -923,11 +1053,11 @@ class _LoginScreenState extends State<LoginScreen>
     final role = vm.user?.role ?? UserRole.student;
     if (role == UserRole.admin) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        MaterialPageRoute(builder: (_) => const AdminShell()),
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+        MaterialPageRoute(builder: (_) => const StudentShell()),
       );
     }
   }

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/local_storage_service.dart';
 import '../../models/user_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final FirestoreService _firestoreService = FirestoreService();
+  final LocalStorageService _storageService = LocalStorageService();
+  final LocalAuthentication _localAuth = LocalAuthentication();
   
   UserModel? _currentUser;
   UserModel? get user => _currentUser;
@@ -18,8 +22,70 @@ class AuthViewModel extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  bool _isBiometricAvailable = false;
+  bool get isBiometricAvailable => _isBiometricAvailable;
+
+  bool get useBiometrics => _storageService.useBiometrics;
+  set useBiometrics(bool value) {
+    _storageService.useBiometrics = value;
+    notifyListeners();
+  }
+
+  bool get stayLoggedIn => _storageService.stayLoggedIn;
+  set stayLoggedIn(bool value) {
+    _storageService.stayLoggedIn = value;
+    notifyListeners();
+  }
+
+  AuthViewModel() {
+    _init();
+  }
+
+  Future<void> _init() async {
+    await _storageService.init();
+    _isBiometricAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
+    notifyListeners();
+  }
+
+  // Biometric Auth
+  Future<bool> authenticateWithBiometrics() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final authenticated = await _localAuth.authenticate(
+        localizedReason: 'Please authenticate to unlock Campus Eats',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      if (authenticated) {
+        // Since Firebase keeps the session, we just check if it's still alive
+        if (_authService.currentUser != null) {
+          _currentUser = await _firestoreService.getUser(_authService.currentUser!.uid);
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          _error = "Session expired. Please log in again.";
+        }
+      }
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = "Biometric authentication failed: ${e.toString()}";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Login
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool stayLoggedIn = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -43,6 +109,12 @@ class AuthViewModel extends ChangeNotifier {
         // 3. Profile Sync
         await _authService.syncUserProfile(credential!.user!);
         _currentUser = await _firestoreService.getUser(credential.user!.uid);
+
+        // 4. Persistence Preferences
+        _storageService.stayLoggedIn = stayLoggedIn;
+        if (stayLoggedIn) {
+          _storageService.useBiometrics = true; // Enable by default if staying logged in
+        }
       }
 
       _isLoading = false;
@@ -124,8 +196,23 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.signOut();
+    await _storageService.clearSettings();
     _currentUser = null;
     notifyListeners();
+  }
+
+  // Auto Login / Biometric Check on Launch
+  Future<bool> checkInitialAuth() async {
+    if (_authService.currentUser != null && _storageService.stayLoggedIn) {
+      if (_storageService.useBiometrics && _isBiometricAvailable) {
+        // Return false to indicate biometric unlock is required
+        return false;
+      }
+      // Auto-fetch profile if staying logged in but biometrics not needed/available
+      _currentUser = await _firestoreService.getUser(_authService.currentUser!.uid);
+      return true;
+    }
+    return false;
   }
 
   String _handleAuthError(dynamic e) {

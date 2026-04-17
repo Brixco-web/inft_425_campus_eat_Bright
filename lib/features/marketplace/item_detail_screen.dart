@@ -17,6 +17,16 @@ class ItemDetailScreen extends StatefulWidget {
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   int _quantity = 1;
+  final Set<MenuOption> _selectedOptions = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-select default options
+    for (var opt in widget.item.options) {
+      if (opt.isDefault) _selectedOptions.add(opt);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,14 +37,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Immersive Hero Image
+          // 1. Immersive Hero Image with Parallax-ready height
           _buildHeroHeader(size),
 
-          // 2. Custom Back Button
+          // 2. Custom Top Navigation
           _buildTopActions(context),
 
-          // 3. Content Panel
+          // 3. Content Panel (Scrollable)
           _buildContentPanel(context, cartViewModel, size),
+          
+          // 4. Floating Action Bar (Sticky at bottom)
+          _buildBottomAction(cartViewModel),
         ],
       ),
     );
@@ -45,7 +58,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       top: 0,
       left: 0,
       right: 0,
-      height: size.height * 0.45,
+      height: size.height * 0.5,
       child: Hero(
         tag: 'food_${widget.item.id}',
         child: Container(
@@ -58,9 +71,24 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 : null,
             color: AppColors.surfaceContainerLowest,
           ),
-          child: widget.item.imageUrl.isEmpty
-              ? const Center(child: Icon(Icons.fastfood, size: 80, color: Colors.white10))
-              : null,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.3),
+                  Colors.transparent,
+                  AppColors.background.withOpacity(0.8),
+                  AppColors.background,
+                ],
+                stops: const [0, 0.4, 0.9, 1],
+              ),
+            ),
+            child: widget.item.imageUrl.isEmpty
+                ? const Center(child: Icon(Icons.fastfood, size: 80, color: Colors.white10))
+                : null,
+          ),
         ),
       ),
     );
@@ -109,139 +137,215 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   Widget _buildContentPanel(BuildContext context, CartViewModel cartVM, Size size) {
     return Positioned.fill(
-      top: size.height * 0.4,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 40,
-              offset: const Offset(0, -10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(32, 40, 32, 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Heat Badges
-                  Row(
-                    children: [
-                      if (widget.item.isTrending)
-                        _buildStatusBadge('TRENDING', Colors.orangeAccent),
-                      const SizedBox(width: 8),
-                      _buildStatusBadge('${widget.item.stockCount} IN STOCK', AppColors.primaryContainer),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+      top: size.height * 0.35,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 150),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Info Bento
+            _buildHeaderBento(),
+            const SizedBox(height: 24),
 
-                  // Title & Price
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.item.name,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.onSurface,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '₵ ${widget.item.price.toStringAsFixed(2)}',
-                        style: GoogleFonts.manrope(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primaryContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Rating & Time
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 18),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.item.rating} (${widget.item.reviewCount} reviews)',
-                        style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                      ),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.timer_outlined, color: AppColors.onSurfaceVariant, size: 18),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.item.prepTime} mins',
-                        style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-                  Text(
-                    'THE EXPERIENCE',
-                    style: GoogleFonts.spaceGrotesk(
-                      color: AppColors.primaryContainer,
-                      letterSpacing: 4,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.item.description,
-                    style: GoogleFonts.manrope(
-                      color: AppColors.onSurfaceVariant.withOpacity(0.8),
-                      height: 1.6,
-                      fontSize: 16,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-                  _buildQuantitySelector(),
-                  
-                  const SizedBox(height: 48),
-                  _buildAddToCartButton(cartVM),
-                ],
+            // Description
+            Text(
+              'THE EXPERIENCE',
+              style: GoogleFonts.spaceGrotesk(
+                color: AppColors.primaryContainer,
+                letterSpacing: 4,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 12),
+            Text(
+              widget.item.description,
+              style: GoogleFonts.manrope(
+                color: AppColors.onSurfaceVariant.withOpacity(0.7),
+                height: 1.6,
+                fontSize: 15,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Customization Options
+            if (widget.item.options.isNotEmpty) ...[
+              Text(
+                'TAILOR YOUR LOOM',
+                style: GoogleFonts.spaceGrotesk(
+                  color: AppColors.primaryContainer,
+                  letterSpacing: 4,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...widget.item.options.map((opt) => _buildOptionTile(opt)),
+              const SizedBox(height: 32),
+            ],
+
+            // Quantity Selector
+            _buildQuantityRow(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderBento() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  widget.item.name,
+                  style: GoogleFonts.epilogue(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryContainer.withOpacity(0.3)),
+                ),
+                child: Text(
+                  'GHS ${widget.item.price.toStringAsFixed(2)}',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: AppColors.primaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildInfoChip(Icons.star, '${widget.item.rating}', const Color(0xFFFFD700)),
+              const SizedBox(width: 12),
+              _buildInfoChip(Icons.timer_outlined, '${widget.item.prepTime} min', AppColors.primaryContainer),
+              const SizedBox(width: 12),
+              _buildInfoChip(Icons.local_fire_department_rounded, 'Hot', Colors.orangeAccent),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.manrope(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionTile(MenuOption opt) {
+    final isSelected = _selectedOptions.contains(opt);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => setState(() {
+          if (isSelected) {
+            _selectedOptions.remove(opt);
+          } else {
+            _selectedOptions.add(opt);
+          }
+        }),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected 
+              ? AppColors.primaryContainer.withOpacity(0.1) 
+              : AppColors.surfaceContainerHigh.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected 
+                ? AppColors.primaryContainer.withOpacity(0.5) 
+                : AppColors.outlineVariant.withOpacity(0.05),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                color: isSelected ? AppColors.primaryContainer : Colors.white24,
+                size: 20,
+              ),
+              const SizedBox(width: 16),
+              Text(
+                opt.name,
+                style: GoogleFonts.manrope(
+                  color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              if (opt.price > 0)
+                Text(
+                  '+GHS ${opt.price.toStringAsFixed(2)}',
+                  style: GoogleFonts.manrope(
+                    color: isSelected ? AppColors.primaryContainer : AppColors.onSurfaceVariant.withOpacity(0.5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
-      ),
+  Widget _buildQuantityRow() {
+    return Row(
+      children: [
+        Text(
+          'Quantity',
+          style: GoogleFonts.epilogue(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const Spacer(),
+        _buildQuantitySelector(),
+      ],
     );
   }
 
   Widget _buildQuantitySelector() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
       ),
       child: Row(
@@ -250,14 +354,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           _buildQtyBtn(Icons.remove, () {
             if (_quantity > 1) setState(() => _quantity--);
           }),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+          Container(
+            width: 40,
+            alignment: Alignment.center,
             child: Text(
-              _quantity.toString().padLeft(2, '0'),
+              '$_quantity',
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.onSurface,
+                color: Colors.white,
               ),
             ),
           ),
@@ -270,44 +375,74 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   }
 
   Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, size: 20, color: AppColors.onSurface),
-      ),
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(icon, size: 20, color: AppColors.primaryContainer),
+      splashRadius: 24,
     );
   }
 
-  Widget _buildAddToCartButton(CartViewModel cartVM) {
-    return SizedBox(
-      width: double.infinity,
-      height: 64,
-      child: ElevatedButton(
-        onPressed: () {
-          for (int i = 0; i < _quantity; i++) {
-            cartVM.addItem(widget.item.id);
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Added $_quantity ${widget.item.name} to loom.'),
+  Widget _buildBottomAction(CartViewModel cartVM) {
+    double total = (widget.item.price * _quantity);
+    for (var opt in _selectedOptions) {
+      total += (opt.price * _quantity);
+    }
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.background.withOpacity(0),
+              AppColors.background.withOpacity(0.95),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: SizedBox(
+          height: 64,
+          child: ElevatedButton(
+            onPressed: () {
+              for (int i = 0; i < _quantity; i++) {
+                cartVM.addItem(widget.item.id);
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Woven $_quantity x ${widget.item.name} into basket.'),
+                  backgroundColor: AppColors.primaryContainer,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryContainer,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 8,
+              shadowColor: AppColors.primaryContainer.withOpacity(0.4),
             ),
-          );
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.shopping_basket_outlined),
-            const SizedBox(width: 12),
-            Text('WOVE INTO BASKET - ₵ ${(widget.item.price * _quantity).toStringAsFixed(2)}'),
-          ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.shopping_bag_outlined, size: 20),
+                const SizedBox(width: 12),
+                Text(
+                  'ADD TO LOOM - GHS ${total.toStringAsFixed(2)}',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

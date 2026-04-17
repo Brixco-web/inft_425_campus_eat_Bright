@@ -9,6 +9,9 @@ class AuthService {
   // Stream of user changes
   Stream<User?> get user => _auth.authStateChanges();
 
+  // Current user
+  User? get currentUser => _auth.currentUser;
+
   /// Logic to determine if a user should be allowed into the system.
   /// Refined: Any email is now allowed as per user request.
   Future<bool> isAuthorized(String email) async {
