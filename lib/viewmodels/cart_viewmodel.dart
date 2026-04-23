@@ -57,6 +57,28 @@ class CartViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Increments quantity of an item.
+  void incrementQuantity(String itemId) {
+    if (_items.containsKey(itemId)) {
+      _items[itemId] = _items[itemId]! + 1;
+      _cartService.saveCart(_items);
+      notifyListeners();
+    }
+  }
+
+  /// Decrements quantity of an item, removing it if quantity becomes 0.
+  void decrementQuantity(String itemId) {
+    if (_items.containsKey(itemId)) {
+      if (_items[itemId]! > 1) {
+        _items[itemId] = _items[itemId]! - 1;
+      } else {
+        _items.remove(itemId);
+      }
+      _cartService.saveCart(_items);
+      notifyListeners();
+    }
+  }
+
   /// Clears all items from the cart.
   void clearCart() {
     _items.clear();

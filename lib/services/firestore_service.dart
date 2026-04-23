@@ -31,4 +31,25 @@ class FirestoreService {
         .get();
     return query.docs.isNotEmpty;
   }
+
+  /// Admin: Search for users by Student ID or Display Name.
+  Future<List<UserModel>> searchUsers(String query) async {
+    // Note: Firestore doesn't support full-text search without a 3rd party.
+    // We'll do a simple match on studentId or paginate/filter locally for small campus size.
+    final result = await _users
+        .where('studentId', isEqualTo: query)
+        .get();
+    
+    if (result.docs.isNotEmpty) {
+      return result.docs.map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
+    }
+
+    // Fallback: search by display name (requires exact match or startAt/endAt trick)
+    final nameResult = await _users
+        .where('displayName', isGreaterThanOrEqualTo: query)
+        .where('displayName', isLessThanOrEqualTo: '$query\uf8ff')
+        .get();
+        
+    return nameResult.docs.map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  }
 }

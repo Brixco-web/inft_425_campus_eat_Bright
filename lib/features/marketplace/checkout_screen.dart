@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,8 +10,9 @@ import '../../viewmodels/menu_viewmodel.dart';
 import '../../viewmodels/wallet_viewmodel.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/order_model.dart';
-import '../../models/wallet_model.dart';
 import '../orders/my_bookings_screen.dart';
+import '../../core/widgets/app_image.dart';
+import 'widgets/cinematic_checkout_background.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -21,8 +23,17 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isLectureMode = false;
-  TimeOfDay _pickupTime = TimeOfDay.now();
-  String _paymentMethod = 'Wallet'; // Default
+  TimeOfDay _pickupTime = const TimeOfDay(hour: 12, minute: 0);
+  String _paymentMethod = 'Wallet';
+
+  @override
+  void initState() {
+    super.initState();
+    final walletVM = Provider.of<WalletViewModel>(context, listen: false);
+    if (!walletVM.isRegistered) {
+      _paymentMethod = 'Cash';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,79 +48,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = subtotal + serviceFee;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Background Aesthetic
-          _buildBackgroundGradient(),
+      backgroundColor: Colors.black,
+      body: CinematicCheckoutBackground(
+        child: Stack(
+          children: [
 
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildSliverAppBar(context),
+              _buildModernAppBar(context),
               
               if (cartVM.items.isEmpty)
                 _buildEmptyState()
               else ...[
-                _buildSectionHeader('YOUR BASKET'),
+                _buildSectionHeader('CULINARY MANIFEST'),
                 _buildCartList(cartVM, menuVM),
                 
-                _buildSectionHeader('PICK-UP STRATEGY'),
+                _buildSectionHeader('TEMPORAL STRATEGY'),
                 _buildSmartOptions(),
                 
-                _buildSectionHeader('PAYMENT METHOD'),
+                _buildSectionHeader('SETTLEMENT PATHWAY'),
                 _buildPaymentOptions(walletVM),
                 
-                _buildSectionHeader('ORDER SUMMARY'),
+                _buildSectionHeader('SUMMARY OF WEAVE'),
                 _buildOrderSummary(subtotal, serviceFee, total),
                 
-                const SliverToBoxAdapter(child: SizedBox(height: 140)),
+                const SliverToBoxAdapter(child: SizedBox(height: 160)),
               ],
             ],
           ),
 
           if (cartVM.items.isNotEmpty)
-            _buildActionFooter(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
+            _buildPremiumFooter(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
             
           if (orderVM.isLoading)
-            _buildLoadingOverlay(),
+            _buildCinematicLoading(),
         ],
       ),
-    );
+    ));
   }
 
-  Widget _buildBackgroundGradient() {
-    return Positioned.fill(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0.8, -0.6),
-            radius: 1.2,
-            colors: [
-              AppColors.primaryContainer.withValues(alpha: 0.08),
-              AppColors.background,
-            ],
+  /// Wraps [child] in a ClipRRect + BackdropFilter so the food-explosion
+  /// image blurs only directly behind this card.
+  Widget _glassCard({
+    required Widget child,
+    double borderRadius = 24,
+    double blurSigma = 12,
+    Color? tint,
+    Border? border,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        child: Container(
+          decoration: BoxDecoration(
+            color: tint ?? Colors.black.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: border ?? Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
+          child: child,
         ),
       ),
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context) {
+  Widget _buildModernAppBar(BuildContext context) {
     return SliverAppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       pinned: true,
-      centerTitle: true,
       leading: IconButton(
-        icon: const Icon(Icons.close_rounded, color: Colors.white),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
         onPressed: () => Navigator.pop(context),
       ),
+      centerTitle: true,
       title: Text(
-        'SMART CHECKOUT',
+        'REVIEW MANIFEST',
         style: GoogleFonts.spaceGrotesk(
           fontSize: 14,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w900,
           letterSpacing: 4,
           color: AppColors.primaryContainer,
         ),
@@ -120,19 +138,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildSectionHeader(String title) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-        child: Text(
-          title,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 2,
-            color: Colors.white38,
-          ),
+        padding: const EdgeInsets.fromLTRB(28, 40, 24, 20),
+        child: Row(
+          children: [
+            Container(width: 4, height: 16, decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.5,
+                color: Colors.white38,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   Widget _buildEmptyState() {
     return SliverFillRemaining(
@@ -140,12 +165,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_basket_outlined, size: 80, color: Colors.white.withValues(alpha: 0.05)),
-            const SizedBox(height: 24),
-            Text(
-              'Your basket is as light as air.',
-              style: GoogleFonts.manrope(color: Colors.white24),
-            ),
+            const Icon(Icons.auto_stories_rounded, size: 80, color: Colors.white10),
+            const SizedBox(height: 32),
+            Text('Your manifest is unwritten.', style: GoogleFonts.manrope(color: Colors.white24, fontSize: 16)),
           ],
         ),
       ),
@@ -161,8 +183,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final itemId = cartVM.items.keys.elementAt(index);
             final quantity = cartVM.items[itemId]!;
             final item = menuVM.items.firstWhere((m) => m.id == itemId);
-
-            return _buildCartItem(context, cartVM, item, quantity);
+            return _buildPremiumCartItem(context, cartVM, item, quantity);
           },
           childCount: cartVM.items.length,
         ),
@@ -170,68 +191,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, CartViewModel cartVM, MenuItem item, int quantity) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              item.imageUrl,
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(color: Colors.white10, child: const Icon(Icons.fastfood)),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                Text(
-                  'GHS ${item.price.toStringAsFixed(2)}',
-                  style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          Row(
+  Widget _buildPremiumCartItem(BuildContext context, CartViewModel cartVM, MenuItem item, int quantity) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _glassCard(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              _buildQtyBtn(Icons.remove, () => cartVM.removeItem(item.id)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('$quantity', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold)),
+              AppImage(
+                url: item.imageUrl,
+                width: 70,
+                height: 70,
+                borderRadius: 16,
               ),
-              _buildQtyBtn(Icons.add, () => cartVM.addItem(item.id)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.name.toUpperCase(), style: GoogleFonts.epilogue(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white)),
+                    const SizedBox(height: 4),
+                    Text('₵${item.price.toStringAsFixed(2)}', style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
+                ),
+              ),
+              Text('${quantity}x', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, color: Colors.white24)),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, size: 14, color: Colors.white),
       ),
     );
   }
@@ -242,19 +230,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
-            _buildFeatureCard(
-              icon: Icons.school_rounded,
-              title: 'Lecture Mode',
-              subtitle: 'Optimized for back-to-back classes',
-              trailing: Switch(
-                value: _isLectureMode,
-                onChanged: (v) => setState(() => _isLectureMode = v),
-                activeTrackColor: AppColors.primaryContainer,
-              ),
+            _buildInteractiveOptionCard(
+              icon: Icons.history_edu_rounded,
+              title: 'LECTURE MODE',
+              subtitle: 'Prioritize prep for class intervals',
+              isActive: _isLectureMode,
+              onToggle: () => setState(() => _isLectureMode = !_isLectureMode),
             ),
             if (_isLectureMode) ...[
               const SizedBox(height: 12),
-              _buildTimeSelector(),
+              _buildCollectionTimeSelector(),
             ],
           ],
         ),
@@ -262,61 +247,69 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildFeatureCard({required IconData icon, required String title, required String subtitle, required Widget trailing}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: AppColors.primaryContainer, size: 20),
+  Widget _buildInteractiveOptionCard({required IconData icon, required String title, required String subtitle, required bool isActive, required VoidCallback onToggle}) {
+    return GestureDetector(
+      onTap: onToggle,
+      child: _glassCard(
+        borderRadius: 32,
+        tint: isActive ? AppColors.primaryContainer.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.45),
+        border: Border.all(color: isActive ? AppColors.primaryContainer.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.08)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: isActive ? AppColors.primaryContainer : Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
+                child: Icon(icon, color: isActive ? Colors.black : Colors.white38, size: 20),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.5)),
+                    const SizedBox(height: 4),
+                    Text(subtitle, style: GoogleFonts.manrope(fontSize: 10, color: Colors.white24)),
+                  ],
+                ),
+              ),
+              Switch(
+                value: isActive, 
+                onChanged: (_) => onToggle(),
+                activeTrackColor: AppColors.primaryContainer.withValues(alpha: 0.2),
+                thumbColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AppColors.primaryContainer : null),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.manrope(fontWeight: FontWeight.bold)),
-                Text(subtitle, style: GoogleFonts.manrope(fontSize: 11, color: Colors.white38)),
-              ],
-            ),
-          ),
-          trailing,
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildTimeSelector() {
-    return InkWell(
+  Widget _buildCollectionTimeSelector() {
+    return GestureDetector(
       onTap: () async {
         final time = await showTimePicker(context: context, initialTime: _pickupTime);
         if (time != null) setState(() => _pickupTime = time);
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Collection Time', style: GoogleFonts.manrope(fontSize: 13)),
-            Text(
-              _pickupTime.format(context),
-              style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold),
-            ),
-          ],
+      child: _glassCard(
+        border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.15)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('CHRONICLE TIME', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w700, fontSize: 10, color: Colors.white38, letterSpacing: 1.5)),
+              Row(
+                children: [
+                  Text(_pickupTime.format(context), style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.w900, fontSize: 16)),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.edit_calendar_rounded, color: AppColors.primaryContainer, size: 16),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -329,20 +322,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Row(
           children: [
             Expanded(
-              child: _buildPaymentTile(
-                'Wallet', 
-                Icons.account_balance_wallet_rounded, 
-                'GHS ${walletVM.balance.toStringAsFixed(2)}',
+              child: _buildSettlementCard(
+                'OBSIDIAN WALLET', 
+                Icons.token_rounded, 
+                walletVM.isRegistered ? '₵${walletVM.balance.toStringAsFixed(2)}' : 'LOCKED',
                 _paymentMethod == 'Wallet',
+                onSelect: walletVM.isRegistered 
+                  ? () => setState(() => _paymentMethod = 'Wallet') 
+                  : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildPaymentTile(
-                'Cash', 
+              child: _buildSettlementCard(
+                'PHYSICAL COIN', 
                 Icons.payments_rounded, 
-                'At Pickup',
+                'At Source',
                 _paymentMethod == 'Cash',
+                onSelect: () => setState(() => _paymentMethod = 'Cash'),
               ),
             ),
           ],
@@ -351,23 +348,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildPaymentTile(String id, IconData icon, String subtitle, bool isSelected) {
-    return InkWell(
-      onTap: () => setState(() => _paymentMethod = id),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerHigh.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: isSelected ? AppColors.primaryContainer : Colors.white24),
-            const SizedBox(height: 8),
-            Text(id, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
-            Text(subtitle, style: GoogleFonts.manrope(fontSize: 10, color: Colors.white38)),
-          ],
+  Widget _buildSettlementCard(String title, IconData icon, String detail, bool isActive, {required VoidCallback? onSelect}) {
+    return GestureDetector(
+      onTap: onSelect,
+      child: _glassCard(
+        borderRadius: 28,
+        tint: isActive ? AppColors.primaryContainer.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.45),
+        border: Border.all(color: isActive ? AppColors.primaryContainer.withValues(alpha: 0.5) : (onSelect == null ? Colors.white10 : Colors.white.withValues(alpha: 0.08))),
+        child: Opacity(
+          opacity: onSelect == null ? 0.3 : 1.0,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(icon, color: isActive ? AppColors.primaryContainer : Colors.white10, size: 24),
+                const SizedBox(height: 16),
+                Text(title, style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 8, color: isActive ? Colors.white : Colors.white24, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(detail, style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.w900, color: isActive ? AppColors.primaryContainer : Colors.white10)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -375,198 +376,212 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildOrderSummary(double subtotal, double fee, double total) {
     return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.05)),
-        ),
-        child: Column(
-          children: [
-            _summaryRow('Subtotal', 'GHS ${subtotal.toStringAsFixed(2)}'),
-            const SizedBox(height: 12),
-            _summaryRow('Service Fee', 'GHS ${fee.toStringAsFixed(2)}'),
-            const Divider(color: Colors.white10, height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: _glassCard(
+          borderRadius: 32,
+          blurSigma: 16,
+          tint: Colors.black.withValues(alpha: 0.55),
+          border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.25)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
               children: [
-                Text('Total Payable', style: GoogleFonts.epilogue(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(
-                  'GHS ${total.toStringAsFixed(2)}', 
-                  style: GoogleFonts.epilogue(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.primaryContainer)
+                _rowSummary('Subtotal Contribution', '₵${subtotal.toStringAsFixed(2)}'),
+                const SizedBox(height: 12),
+                _rowSummary('Ancestral Fee', '₵${fee.toStringAsFixed(2)}'),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(color: Colors.white10, thickness: 1)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('TOTAL WEAVE', style: GoogleFonts.epilogue(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1, color: Colors.white38)),
+                    Text('₵${total.toStringAsFixed(2)}', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 20, color: AppColors.primaryContainer)),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _summaryRow(String label, String value) {
+  Widget _rowSummary(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.manrope(color: Colors.white38, fontSize: 13)),
-        Text(value, style: GoogleFonts.manrope(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(label, style: GoogleFonts.spaceGrotesk(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(value, style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800, fontSize: 12, color: Colors.white70)),
       ],
     );
   }
 
-  Widget _buildActionFooter(
-    BuildContext context, 
-    AuthViewModel authVM, 
-    CartViewModel cartVM, 
-    MenuViewModel menuVM, 
-    OrderViewModel orderVM,
-    WalletViewModel walletVM,
-    double total,
-  ) {
-    final canPay = _paymentMethod == 'Cash' || walletVM.balance >= total;
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.background.withValues(alpha: 0),
-              AppColors.background.withValues(alpha: 0.95),
-              AppColors.background,
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!canPay)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'Insufficient funds in Obsidian Wallet',
-                  style: GoogleFonts.manrope(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold),
+  Widget _buildPremiumFooter(BuildContext context, AuthViewModel authVM, CartViewModel cartVM, MenuViewModel menuVM, OrderViewModel orderVM, WalletViewModel walletVM, double total) {
+    return Positioned(bottom: 0, left: 0, right: 0,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 48),
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.85), border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('TOTAL', style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38, letterSpacing: 1)),
+                      Text('₵${total.toStringAsFixed(2)}', style: GoogleFonts.spaceGrotesk(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primaryContainer)),
+                    ],
+                  ),
                 ),
-              ),
-            SizedBox(
-              width: double.infinity,
-              height: 64,
-              child: ElevatedButton(
-                onPressed: (orderVM.isLoading || !canPay) ? null : () => _handlePlaceOrder(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 8,
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 1.0, end: 1.02),
+                  duration: const Duration(milliseconds: 1500),
+                  curve: Curves.easeInOut,
+                  builder: (context, scale, child) {
+                    return Transform.scale(
+                      scale: scale,
+                      child: SizedBox(
+                        height: 60, width: 220,
+                        child: ElevatedButton(
+                          onPressed: orderVM.isLoading ? null : () => _handlePlaceOrder(context, authVM, cartVM, menuVM, orderVM, walletVM, total),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryContainer,
+                            foregroundColor: Colors.black,
+                            disabledBackgroundColor: Colors.white10,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            elevation: 8,
+                            shadowColor: AppColors.primaryContainer.withValues(alpha: 0.3),
+                          ),
+                          child: Text('FINALIZE WEAVE', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 14)),
+                        ),
+                      ),
+                    );
+                  },
+                  onEnd: () {}, // Not used but builder repeats naturally if we logic it, but TweenAnimationBuilder is one shot unless we use a repeated controller.
                 ),
-                child: Text(
-                  'CONFIRM ORDER',
-                  style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800, letterSpacing: 2),
-                ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _handlePlaceOrder(
-    BuildContext context,
-    AuthViewModel authVM,
-    CartViewModel cartVM,
-    MenuViewModel menuVM,
-    OrderViewModel orderVM,
-    WalletViewModel walletVM,
-    double total,
-  ) async {
+  Future<void> _handlePlaceOrder(BuildContext context, AuthViewModel authVM, CartViewModel cartVM, MenuViewModel menuVM, OrderViewModel orderVM, WalletViewModel walletVM, double total) async {
     final user = authVM.user;
     if (user == null) return;
+    
+    if (_paymentMethod == 'Wallet' && walletVM.balance < total) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: AppColors.primaryContainer.withValues(alpha: 0.3))),
+          title: Text('INSUFFICIENT WALLET BALANCE', style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, fontWeight: FontWeight.bold, fontSize: 14)),
+          content: Text(
+            'Your Obsidian Wallet balance (₵${walletVM.balance.toStringAsFixed(2)}) is lower than the total (₵${total.toStringAsFixed(2)}).\n\nYou may proceed, but you must pay the difference in CASH at pickup.',
+            style: GoogleFonts.manrope(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('CANCEL', style: GoogleFonts.spaceGrotesk(color: Colors.white38)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryContainer, foregroundColor: Colors.black),
+              child: Text('PROCEED WITH CASH', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
+          ],
+        ),
+      );
+      
+      if (proceed != true) return;
+      // If proceeding, automatically switch preference to cash for admin clarity
+      setState(() => _paymentMethod = 'Cash');
+    }
 
     final List<OrderItem> orderItems = [];
     cartVM.items.forEach((itemId, quantity) {
       final item = menuVM.items.firstWhere((m) => m.id == itemId);
-      orderItems.add(OrderItem(
-        itemId: itemId,
-        name: item.name,
-        quantity: quantity,
-        price: item.price,
-      ));
+      orderItems.add(OrderItem(itemId: itemId, name: item.name, quantity: quantity, price: item.price));
     });
-
     DateTime? pickup;
     if (_isLectureMode) {
       final now = DateTime.now();
       pickup = DateTime(now.year, now.month, now.day, _pickupTime.hour, _pickupTime.minute);
     }
-
+    
+    final method = _paymentMethod == 'Cash' ? PaymentMethod.cash : PaymentMethod.wallet;
+    
     final success = await orderVM.placeOrder(
-      userId: user.uid,
-      studentName: user.displayName,
-      items: orderItems,
-      totalAmount: total,
-      pickupTime: pickup,
+      userId: user.uid, 
+      studentName: user.displayName, 
+      items: orderItems, 
+      totalAmount: total, 
+      pickupTime: pickup, 
       isLectureMode: _isLectureMode,
+      paymentMethod: method,
     );
-
+    
     if (success && context.mounted) {
-      // Deduct from wallet if applicable
-      if (_paymentMethod == 'Wallet') {
-        walletVM.processTransaction(
-          title: 'Order Payment',
-          amount: total,
-          type: TransactionType.purchase,
-        );
-      }
-      
       cartVM.clearCart();
-      
-      // show success then navigate
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Loom Order Secured! Track it in your bookings.'),
-          backgroundColor: AppColors.primaryContainer,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
-      );
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(orderVM.errorMessage ?? 'Transaction failed in the loom.'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _showSuccessDialog(context);
     }
   }
 
-  Widget _buildLoadingOverlay() {
-    return Container(
-      color: Colors.black87,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(color: AppColors.primaryContainer),
-            const SizedBox(height: 24),
-            Text(
-              'WEAVING YOUR ORDER...',
-              style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, letterSpacing: 4, fontWeight: FontWeight.bold),
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerHigh.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.3)),
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.verified_rounded, color: AppColors.primaryContainer, size: 80),
+                const SizedBox(height: 32),
+                Text('WEAVE SECURED', style: GoogleFonts.spaceGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 4)),
+                const SizedBox(height: 16),
+                Text('Your culinary chronicle has been added to our legacy.', textAlign: TextAlign.center, style: GoogleFonts.manrope(color: Colors.white70)),
+                const SizedBox(height: 48),
+                SizedBox(
+                  width: double.infinity, height: 60,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen()));
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    child: Text('VIEW CHRONICLES', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildCinematicLoading() {
+    return Container(color: Colors.black.withValues(alpha: 0.9), child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      const CircularProgressIndicator(color: AppColors.primaryContainer, strokeWidth: 2),
+      const SizedBox(height: 32),
+      Text('WEAVING THE CHRONICLE...', style: GoogleFonts.spaceGrotesk(color: AppColors.primaryContainer, letterSpacing: 4, fontWeight: FontWeight.w900, fontSize: 10)),
+    ])));
+  }
 }
+

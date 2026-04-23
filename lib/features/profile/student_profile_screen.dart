@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:inft_425_campus_eat_bright/core/widgets/culinary_texture.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/auth_viewmodel.dart';
@@ -20,53 +21,28 @@ class StudentProfileScreen extends StatelessWidget {
     final user = authVm.user;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Background Gradient
-          _buildBackground(),
+      backgroundColor: Colors.transparent,
+      body: CulinaryTexture(
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Top Branding
+              _buildPremiumTopBar(),
 
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  _buildHeader(context, user?.displayName ?? 'Student'),
-                  const SizedBox(height: 24),
-                  
-                  // Wallet Card
-                  _buildWalletCard(context, walletVm),
-                  const SizedBox(height: 24),
+              // Identity Section
+              _buildIdentitySection(user?.displayName ?? 'Student'),
 
-                  // Quick Actions Bento
-                  _buildQuickActions(context, orderVm),
-                  const SizedBox(height: 32),
+              // The Obsidian Ledger (Wallet)
+              _buildObsidianLedger(context, walletVm),
 
-                  // Recent Activity
-                  _buildRecentActivity(context, walletVm),
-                  const SizedBox(height: 100), // Padding for bottom nav
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+              // Premium Actions Bento
+              _buildBentoActions(context, orderVm),
 
-  Widget _buildBackground() {
-    return Positioned.fill(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primaryContainer.withValues(alpha: 0.05),
-              AppColors.background,
-              AppColors.background,
+              // Recent Chronicles (Transactions)
+              _buildRecentChronicles(walletVm),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 140)),
             ],
           ),
         ),
@@ -74,300 +50,446 @@ class StudentProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String name) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'OBSIDIAN LOOM',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 12,
-                letterSpacing: 4.0,
-                color: AppColors.primaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              'My Account',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () => context.read<AuthViewModel>().logout(),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
-              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-            ),
-            child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWalletCard(BuildContext context, WalletViewModel vm) {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(28),
-        image: const DecorationImage(
-          image: NetworkImage('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop'),
-          fit: BoxFit.cover,
-          opacity: 0.1,
-        ),
-        border: Border.all(color: AppColors.primaryContainer.withValues(alpha: 0.2), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'DIGITAL WALLET',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 12,
-                        letterSpacing: 2,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const Icon(Icons.nfc_rounded, color: AppColors.primaryContainer, size: 20),
-                  ],
-                ),
-                const Spacer(),
-                Text(
-                  'GHS ${vm.balance.toStringAsFixed(2)}',
-                  style: GoogleFonts.epilogue(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _buildBalanceBadge('Ready to Spend'),
-                    const SizedBox(width: 8),
-                    _buildBalanceBadge('Verified'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBalanceBadge(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primaryContainer.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.manrope(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryContainer,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, OrderViewModel orderVm) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: GoogleFonts.epilogue(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.onSurface,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionItem(
-                context,
-                Icons.qr_code_rounded,
-                'My Pass',
-                orderVm.hasActiveOrder ? 'Active Pass' : 'No active pass',
-                AppColors.primaryContainer,
-                onTap: () {
-                  if (orderVm.hasActiveOrder) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PickUpPassScreen(order: orderVm.activeOrders.first),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No active orders to collect.')),
-                    );
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildActionItem(
-                context,
-                Icons.card_giftcard_rounded,
-                'Rewards',
-                '120 Points',
-                const Color(0xFFFACC15),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionItem(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color accent, {
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: accent, size: 28),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: GoogleFonts.epilogue(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: GoogleFonts.manrope(
-                fontSize: 11,
-                color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentActivity(BuildContext context, WalletViewModel vm) {
-    final transactions = vm.transactions;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+  Widget _buildPremiumTopBar() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 12, 28, 0),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Activity',
-              style: GoogleFonts.epilogue(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
-            Text(
-              'View All',
-              style: GoogleFonts.manrope(
-                fontSize: 12,
+              'STUDENT EXPERIENCE',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 4,
                 color: AppColors.primaryContainer,
-                fontWeight: FontWeight.w600,
               ),
             ),
+            _buildPulseIndicator(),
           ],
         ),
-        const SizedBox(height: 16),
-        if (transactions.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Text(
-                'No transactions yet.',
-                style: GoogleFonts.manrope(color: Colors.white38),
-              ),
-            ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: transactions.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final tx = transactions[index];
-              return _buildTransactionItem(tx);
-            },
-          ),
-      ],
+      ),
     );
   }
 
-  Widget _buildTransactionItem(WalletTransaction tx) {
+  Widget _buildPulseIndicator() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF4ADE80).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF4ADE80).withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFF4ADE80),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'ENCRYPTED',
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF4ADE80),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdentitySection(String name) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 40, 28, 32),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primaryContainer.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: const CircleAvatar(
+                radius: 36,
+                backgroundColor: AppColors.surfaceContainerHigh,
+                child: Icon(
+                  Icons.school_rounded,
+                  color: AppColors.primaryContainer,
+                  size: 32,
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.epilogue(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'VVU ELITE MERCHANT',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primaryContainer,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildObsidianLedger(BuildContext context, WalletViewModel vm) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          height: 220,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(40),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(40),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
+                ),
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'TOTAL BALANCE',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white38,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const Icon(
+                          Icons.security_rounded,
+                          color: AppColors.primaryContainer,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Text(
+                      '₵ ${vm.balance.toStringAsFixed(2)}',
+                      style: GoogleFonts.epilogue(
+                        fontSize: 44,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -2,
+                      ),
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        _buildLedgerAction(
+                          Icons.add_circle_outline_rounded,
+                          'TOP UP',
+                        ),
+                        const SizedBox(width: 12),
+                        _buildLedgerAction(Icons.send_rounded, 'TRANSFER'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLedgerAction(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryContainer.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.black),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBentoActions(BuildContext context, OrderViewModel orderVm) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            // Active Pass (Wide Portal)
+            _buildBentoPortal(
+              title: orderVm.hasActiveOrder
+                  ? 'ACTIVE PICKUP PASS'
+                  : 'NO ACTIVE PASS',
+              subtitle: orderVm.hasActiveOrder
+                  ? 'Ready for collection'
+                  : 'Browse the kitchen',
+              icon: Icons.qr_code_2_rounded,
+              color: orderVm.hasActiveOrder
+                  ? const Color(0xFF4ADE80)
+                  : Colors.white24,
+              onTap: () {
+                if (orderVm.hasActiveOrder) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PickupPassScreen(order: orderVm.activeOrders.first),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMiniBento(
+                    title: 'ORDER HISTORY',
+                    icon: Icons.auto_awesome_mosaic_rounded,
+                    color: Colors.orangeAccent,
+                    onTap: () {},
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMiniBento(
+                    title: 'APP SETTINGS',
+                    icon: Icons.tune_rounded,
+                    color: Colors.white,
+                    onTap: () {},
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBentoPortal({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      color: Colors.white38,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniBento({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const Spacer(),
+            Text(
+              title,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentChronicles(WalletViewModel vm) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'EXPERIENCE CHRONICLES',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Colors.white24,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (vm.transactions.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Center(
+                  child: Text(
+                    'No chronicles found.',
+                    style: GoogleFonts.manrope(color: Colors.white10),
+                  ),
+                ),
+              )
+            else
+              ...vm.transactions.take(5).map((tx) => _buildChronicleTile(tx)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChronicleTile(WalletTransaction tx) {
+    final isPurchase = tx.type == TransactionType.purchase;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.02)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+              color: isPurchase
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : AppColors.primaryContainer.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              tx.type == TransactionType.purchase ? Icons.shopping_bag_outlined : Icons.account_balance_wallet_outlined,
-              color: tx.type == TransactionType.purchase ? AppColors.secondaryContainer : AppColors.primaryContainer,
+              isPurchase
+                  ? Icons.receipt_long_rounded
+                  : Icons.account_balance_wallet_rounded,
+              color: isPurchase ? Colors.white38 : AppColors.primaryContainer,
               size: 20,
             ),
           ),
@@ -377,29 +499,30 @@ class StudentProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tx.description,
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
+                  tx.description.toUpperCase(),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 Text(
                   tx.timestamp.toString().split(' ')[0],
                   style: GoogleFonts.manrope(
-                    fontSize: 11,
-                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+                    fontSize: 10,
+                    color: Colors.white24,
                   ),
                 ),
               ],
             ),
           ),
           Text(
-            '${tx.type == TransactionType.purchase ? '-' : '+'}GHS ${tx.amount.toStringAsFixed(2)}',
-            style: GoogleFonts.epilogue(
+            '${isPurchase ? '-' : '+'}₵${tx.amount.toStringAsFixed(2)}',
+            style: GoogleFonts.spaceGrotesk(
               fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: tx.type == TransactionType.purchase ? Colors.white : AppColors.primaryContainer,
+              fontWeight: FontWeight.w900,
+              color: isPurchase ? Colors.white54 : AppColors.primaryContainer,
             ),
           ),
         ],

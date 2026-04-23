@@ -1,86 +1,234 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/order_model.dart';
 
-class PickUpPassScreen extends StatelessWidget {
+class PickupPassScreen extends StatelessWidget {
   final OrderModel order;
 
-  const PickUpPassScreen({super.key, required this.order});
+  const PickupPassScreen({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
+    final String qrData = order.id;
+    final isReady = order.status == OrderStatus.ready;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'PICK-UP PASS',
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 14,
-            letterSpacing: 4,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryContainer,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: Stack(
         children: [
-          // Background Glow
-          Center(
+          // ── Layer 1: Afro-Modernist Base ──
+          Positioned.fill(
             child: Container(
-              width: 300,
-              height: 300,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryContainer.withValues(alpha: 0.05),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: Container(color: Colors.transparent),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    isReady ? const Color(0xFF10B981).withValues(alpha: 0.1) : AppColors.primaryContainer.withValues(alpha: 0.05),
+                    AppColors.background,
+                  ],
+                ),
               ),
             ),
           ),
 
-          Column(
-            children: [
-              const SizedBox(height: 40),
-              
-              // Animated Status Badge
-              _buildStatusBadge(),
-              
-              const SizedBox(height: 32),
-
-              // Glass QR Container
-              _buildQrContainer(),
-
-              const SizedBox(height: 32),
-
-              // Order Details
-              _buildOrderInfo(),
-
-              const Spacer(),
-
-              // Instructions
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-                child: Text(
-                  'Show this QR code at the collection point once your order is marked "Ready".',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.manrope(
-                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontSize: 12,
-                    height: 1.5,
+          SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(context),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildStatusHeader(isReady),
+                        const SizedBox(height: 48),
+                        _buildQRSection(qrData, isReady),
+                        const SizedBox(height: 60),
+                        _buildManifestDetails(),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
+                _buildChronicleAction(context),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+            onPressed: () => Navigator.pop(context),
+          ),
+          Text(
+            'PICK-UP PASS',
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              color: AppColors.primaryContainer,
+            ),
+          ),
+          const SizedBox(width: 48), // Balance
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusHeader(bool isReady) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: (isReady ? const Color(0xFF10B981) : AppColors.primaryContainer).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: (isReady ? const Color(0xFF10B981) : AppColors.primaryContainer).withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8, height: 8,
+                decoration: BoxDecoration(
+                  color: isReady ? const Color(0xFF10B981) : AppColors.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                isReady ? 'MANIFEST SEALED' : 'IN PREPARATION',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  color: isReady ? const Color(0xFF10B981) : AppColors.primaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          isReady ? 'Ready for Collection' : 'Weaving your Flavor',
+          style: GoogleFonts.epilogue(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: -1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQRSection(String data, bool isReady) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(48),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: (isReady ? const Color(0xFF10B981) : AppColors.primaryContainer).withValues(alpha: 0.2),
+                  blurRadius: 40,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: QrImageView(
+              data: data,
+              version: QrVersions.auto,
+              size: 220.0,
+              gapless: false,
+              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+              dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            '#${order.id.substring(0, 8).toUpperCase()}',
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.white38,
+              letterSpacing: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManifestDetails() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(40),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.02)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'MANIFEST CONTENT',
+            style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white24, letterSpacing: 2),
+          ),
+          const SizedBox(height: 24),
+          ...order.items.map((item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${item.quantity}x ${item.name.toUpperCase()}',
+                  style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white70),
+                ),
+                Text(
+                  '₵${(item.price * item.quantity).toStringAsFixed(2)}',
+                  style: GoogleFonts.spaceGrotesk(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white24),
+                ),
+              ],
+            ),
+          )),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Divider(color: Colors.white10, thickness: 1),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'TOTAL',
+                style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white24, letterSpacing: 1),
+              ),
+              Text(
+                '₵${order.totalAmount.toStringAsFixed(2)}',
+                style: GoogleFonts.spaceGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.primaryContainer),
               ),
             ],
           ),
@@ -89,141 +237,30 @@ class PickUpPassScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge() {
-    final statusColor = _getStatusColor(order.status);
+  Widget _buildChronicleAction(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(28, 20, 28, 40),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 64,
+        child: ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white.withValues(alpha: 0.05),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
-          const SizedBox(width: 8),
-          Text(
-            order.status.name.toUpperCase(),
-            style: GoogleFonts.spaceGrotesk(
-              color: statusColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              letterSpacing: 1,
-            ),
+          child: Text(
+            'CLOSE PASS',
+            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, letterSpacing: 1),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQrContainer() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Corner accents
-          ..._buildCorners(),
-
-          QrImageView(
-            data: order.id,
-            version: QrVersions.auto,
-            size: 200.0,
-            eyeStyle: const QrEyeStyle(
-              eyeShape: QrEyeShape.square,
-              color: Colors.white,
-            ),
-            dataModuleStyle: const QrDataModuleStyle(
-              dataModuleShape: QrDataModuleShape.square,
-              color: AppColors.primaryContainer,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildCorners() {
-    const double offset = -10;
-    return [
-      Positioned(top: offset, left: offset, child: _corner(0)),
-      Positioned(top: offset, right: offset, child: _corner(1)),
-      Positioned(bottom: offset, left: offset, child: _corner(2)),
-      Positioned(bottom: offset, right: offset, child: _corner(3)),
-    ];
-  }
-
-  Widget _corner(int index) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        border: Border(
-          top: (index == 0 || index == 1) ? const BorderSide(color: AppColors.primaryContainer, width: 3) : BorderSide.none,
-          bottom: (index == 2 || index == 3) ? const BorderSide(color: AppColors.primaryContainer, width: 3) : BorderSide.none,
-          left: (index == 0 || index == 2) ? const BorderSide(color: AppColors.primaryContainer, width: 3) : BorderSide.none,
-          right: (index == 1 || index == 3) ? const BorderSide(color: AppColors.primaryContainer, width: 3) : BorderSide.none,
         ),
       ),
     );
-  }
-
-  Widget _buildOrderInfo() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        children: [
-          Text(
-            'Order #${order.id.substring(0, 8).toUpperCase()}',
-            style: GoogleFonts.epilogue(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${order.items.length} Items · GHS ${order.totalAmount.toStringAsFixed(2)}',
-            style: GoogleFonts.manrope(
-              fontSize: 14,
-              color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(OrderStatus status) {
-    switch (status.name.toLowerCase()) {
-      case 'ready':
-        return const Color(0xFF4ADE80);
-      case 'processing':
-        return AppColors.primaryContainer;
-      case 'pending':
-        return const Color(0xFFFACC15);
-      default:
-        return AppColors.onSurfaceVariant;
-    }
   }
 }

@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="inft_425_campus_eat_bright"
+        android:label="Campus Eats"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

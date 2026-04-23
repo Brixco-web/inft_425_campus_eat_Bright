@@ -43,20 +43,16 @@ class OrderService {
     required double totalAmount,
     DateTime? pickupTime,
     bool isLectureMode = false,
+    PaymentMethod paymentMethod = PaymentMethod.wallet,
   }) async {
     final orderId = _orders.doc().id;
     final verificationCode = 'VVU-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
     await _db.runTransaction((transaction) async {
-      // 1. Verify Wallet Balance
+      // 1. Check Wallet Exists (No strict deduction yet)
       final walletRef = _wallets.doc(userId);
       final walletSnap = await transaction.get(walletRef);
       if (!walletSnap.exists) throw Exception('Obsidian Wallet not initialized.');
-      
-      final currentBalance = (walletSnap.data() as Map<String, dynamic>)['balance'] ?? 0.0;
-      if (currentBalance < totalAmount) {
-        throw Exception('Insufficient funds in Obsidian Wallet. Please visit cafeteria admin for advance payment.');
-      }
 
       // 2. Verify and Deduct Stock for each item
       for (var item in items) {
@@ -74,22 +70,7 @@ class OrderService {
         transaction.update(itemRef, {'stockCount': currentStock - item.quantity});
       }
 
-      // 3. Deduct Wallet Balance & Add Transaction
-      final walletData = walletSnap.data() as Map<String, dynamic>;
-      final transactions = walletData['transactions'] as List? ?? [];
-      
-      transactions.add({
-        'id': 'TRX-$orderId',
-        'amount': totalAmount,
-        'type': 'purchase',
-        'timestamp': Timestamp.now(),
-        'description': 'Ordered ${items.length} items',
-      });
 
-      transaction.update(walletRef, {
-        'balance': currentBalance - totalAmount,
-        'transactions': transactions,
-      });
 
       // 4. Create Order
       final order = OrderModel(
@@ -102,6 +83,7 @@ class OrderService {
         pickupTime: pickupTime,
         isLectureMode: isLectureMode,
         verificationCode: verificationCode,
+        paymentMethod: paymentMethod,
       );
 
       transaction.set(_orders.doc(orderId), order.toMap());
@@ -110,26 +92,72 @@ class OrderService {
     return orderId;
   }
 
+  /// Admin capability: Signal that preparation has started.
+  Future<void> markOrderPreparing(String orderId) async {
+    await _orders.doc(orderId).update({'status': OrderStatus.preparing.name});
+  }
+
   /// Admin capability: Mark order as ready for pickup.
   Future<void> markOrderReady(String orderId) async {
-    await _orders.doc(orderId).update({'status': 'ready'});
+    await _orders.doc(orderId).update({'status': OrderStatus.ready.name});
   }
 
   /// Admin capability: Verify QR and mark order as collected.
-  /// This is the final step in the order lifecycle.
-  Future<void> completeOrderHandshake(String orderId, String verificationCode) async {
-    final doc = await _orders.doc(orderId).get();
-    if (!doc.exists) throw Exception('Order not found');
-    
-    final order = OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-    if (order.verificationCode != verificationCode) {
-      throw Exception('Invalid verification code. Handshake failed.');
-    }
+  /// Deducts balance if using Wallet, updates status to collected.
+  Future<void> completeOrderHandshake(String orderId, String verificationCode, PaymentMethod paymentMethod) async {
+    await _db.runTransaction((transaction) async {
+      final docRef = _orders.doc(orderId);
+      final doc = await transaction.get(docRef);
+      
+      if (!doc.exists) throw Exception('Order not found');
+      
+      final order = OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      
+      if (order.verificationCode != verificationCode) {
+        throw Exception('Invalid verification code. Handshake failed.');
+      }
 
-    if (order.status != OrderStatus.ready) {
-      throw Exception('Order is not marked as READY yet.');
-    }
+      if (order.status != OrderStatus.ready) {
+        throw Exception('Order is not marked as READY yet.');
+      }
 
-    await _orders.doc(orderId).update({'status': 'collected'});
+      if (paymentMethod == PaymentMethod.wallet) {
+        final walletRef = _wallets.doc(order.userId);
+        final walletSnap = await transaction.get(walletRef);
+        
+        if (!walletSnap.exists) throw Exception('Obsidian Wallet not initialized.');
+        
+        final walletData = walletSnap.data() as Map<String, dynamic>;
+        final currentBalance = (walletData['balance'] ?? 0.0).toDouble();
+        
+        if (currentBalance < order.totalAmount) {
+          throw Exception('Insufficient funds in Obsidian Wallet (Balance: ₵$currentBalance). Need ₵${order.totalAmount}. Use Cash Payment.');
+        }
+
+        final transactions = walletData['transactions'] as List? ?? [];
+        transactions.add({
+          'id': 'TRX-${order.id}',
+          'amount': order.totalAmount,
+          'type': 'purchase',
+          'timestamp': Timestamp.now(),
+          'description': 'Pickup: ${order.items.length} items',
+        });
+
+        transaction.update(walletRef, {
+          'balance': currentBalance - order.totalAmount,
+          'transactions': transactions,
+        });
+      }
+
+      transaction.update(docRef, {
+        'status': 'collected',
+        'paymentMethod': paymentMethod.name,
+      });
+    });
+  }
+
+  /// Updates the rating for a collected order.
+  Future<void> updateOrderRating(String orderId, double rating) async {
+    await _orders.doc(orderId).update({'rating': rating});
   }
 }

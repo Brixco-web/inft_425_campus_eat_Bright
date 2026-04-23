@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/menu_item_model.dart';
 import '../models/promotion_model.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../services/menu_service.dart';
 import '../services/promotion_service.dart';
 
@@ -9,6 +11,7 @@ import '../services/promotion_service.dart';
 class MenuViewModel extends ChangeNotifier {
   final MenuService _menuService = MenuService();
   final PromotionService _promotionService = PromotionService();
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   
   List<MenuItem> _allItems = [];
   List<MenuItem> get allItems => _allItems;
@@ -22,6 +25,10 @@ class MenuViewModel extends ChangeNotifier {
 
   MenuCategory? _selectedCategory;
   MenuCategory? get selectedCategory => _selectedCategory;
+
+  String _searchQuery = '';
+  bool _isVegetarianFilter = false;
+  bool _isVeganFilter = false;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -64,35 +71,34 @@ class MenuViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Filters the master item list based on search and category state.
+  /// Filters the master item list based on search, category, and dietary state.
   void _applyFiltering() {
-    if (_selectedCategory == null) {
-      _filteredItems = List.from(_allItems);
-    } else {
-      _filteredItems = _allItems
-          .where((item) => item.category == _selectedCategory)
-          .toList();
-    }
+    _filteredItems = _allItems.where((item) {
+      final matchesCategory = _selectedCategory == null || item.category == _selectedCategory;
+      final matchesSearch = _searchQuery.isEmpty || 
+          item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          item.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      
+      bool matchesDietary = true;
+      if (_isVegetarianFilter && !item.isVegetarian) matchesDietary = false;
+      if (_isVeganFilter && !item.isVegan) matchesDietary = false;
+      
+      return matchesCategory && matchesSearch && matchesDietary;
+    }).toList();
   }
 
   /// Search logic for finding items by name or description.
   void searchItems(String query) {
-    if (query.isEmpty) {
-      _applyFiltering();
-    } else {
-      _filteredItems = _allItems
-          .where((item) =>
-              item.name.toLowerCase().contains(query.toLowerCase()) ||
-              item.description.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-      
-      // Also apply category filter if active
-      if (_selectedCategory != null) {
-        _filteredItems = _filteredItems
-            .where((item) => item.category == _selectedCategory)
-            .toList();
-      }
-    }
+    _searchQuery = query;
+    _applyFiltering();
+    notifyListeners();
+  }
+
+  /// Appied dietary preferences.
+  void applyDietaryFilters({required bool isVegetarian, required bool isVegan}) {
+    _isVegetarianFilter = isVegetarian;
+    _isVeganFilter = isVegan;
+    _applyFiltering();
     notifyListeners();
   }
 
@@ -100,6 +106,13 @@ class MenuViewModel extends ChangeNotifier {
   List<MenuItem> get spotlightItems {
     final list = _allItems.where((item) => item.rating >= 4.5).toList();
     return list..sort((a, b) => b.rating.compareTo(a.rating));
+  }
+
+  /// Trending items based on sales volume (top 6)
+  List<MenuItem> get trendingItems {
+    final list = List<MenuItem>.from(_allItems);
+    list.sort((a, b) => b.totalOrders.compareTo(a.totalOrders));
+    return list.take(6).toList();
   }
 
   // --- Administrative Methods ---
@@ -124,6 +137,18 @@ class MenuViewModel extends ChangeNotifier {
     }
   }
 
+  /// Uploads a local image file to Firebase Storage and returns the public URL.
+  Future<String> uploadImage(File file, String path) async {
+    try {
+      final ref = _storage.ref().child(path);
+      final uploadTask = await ref.putFile(file);
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      debugPrint('Error uploading image: $e');
+      rethrow;
+    }
+  }
+
   /// Adds or updates a promotion flier.
   Future<void> savePromotion(PromotionModel promo) async {
     try {
@@ -141,6 +166,18 @@ class MenuViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error deleting promotion: $e');
       rethrow;
+    }
+  }
+
+  /// Development Tool: Triggers the seeding process.
+  Future<void> seedMenu() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _menuService.seedMenu();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
@@ -968,26 +968,32 @@ class _LoginScreenState extends State<LoginScreen>
   }) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 64, // Increased height to ensure premium feel and zero descender clipping
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryContainer,
           foregroundColor: AppColors.onPrimaryContainer,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          padding: const EdgeInsets.symmetric(horizontal: 24), // Added horizontal breathing room
         ),
         child: isLoading
             ? const SizedBox(
-                height: 20, width: 20,
+                height: 24, width: 24,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
+                  strokeWidth: 2.5,
                   color: AppColors.onPrimaryContainer,
                 ),
               )
             : Text(
                 label,
-                style: GoogleFonts.epilogue(fontWeight: FontWeight.w800, fontSize: 15),
+                style: GoogleFonts.epilogue(
+                  fontWeight: FontWeight.w900, // Thicker weight for better stand-out
+                  fontSize: 16,
+                  letterSpacing: 1.2,
+                  height: 1.1, // Controlled line height
+                ),
               ),
       ),
     );

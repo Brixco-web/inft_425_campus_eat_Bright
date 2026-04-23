@@ -9,10 +9,10 @@ class WalletService {
   CollectionReference get _wallets => _db.collection('wallets');
 
   /// Streams the wallet data for a specific user.
-  Stream<WalletModel> getWalletStream(String userId) {
+  Stream<WalletModel?> getWalletStream(String userId) {
     return _wallets.doc(userId).snapshots().map((snapshot) {
       if (!snapshot.exists) {
-        return WalletModel(userId: userId, balance: 0.0);
+        return null;
       }
       return WalletModel.fromMap(snapshot.data() as Map<String, dynamic>);
     });

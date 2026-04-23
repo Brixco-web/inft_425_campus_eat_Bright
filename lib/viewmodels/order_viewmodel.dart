@@ -42,6 +42,7 @@ class OrderViewModel extends ChangeNotifier {
     required double totalAmount,
     DateTime? pickupTime,
     bool isLectureMode = false,
+    PaymentMethod paymentMethod = PaymentMethod.wallet,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -55,6 +56,7 @@ class OrderViewModel extends ChangeNotifier {
         totalAmount: totalAmount,
         pickupTime: pickupTime,
         isLectureMode: isLectureMode,
+        paymentMethod: paymentMethod,
       );
       _isLoading = false;
       notifyListeners();
@@ -64,6 +66,16 @@ class OrderViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Updates the rating for a collected order.
+  Future<void> rateOrder(String orderId, double rating) async {
+    try {
+      await _orderService.updateOrderRating(orderId, rating);
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum OrderStatus { pending, ready, collected, cancelled }
+enum OrderStatus { pending, preparing, ready, collected, cancelled }
+enum PaymentMethod { wallet, cash }
 
 class OrderModel {
   final String id;
@@ -13,6 +14,8 @@ class OrderModel {
   final DateTime? pickupTime;
   final bool isLectureMode;
   final String verificationCode;
+  final PaymentMethod paymentMethod;
+  final double? rating;
 
   OrderModel({
     required this.id,
@@ -25,6 +28,8 @@ class OrderModel {
     this.pickupTime,
     this.isLectureMode = false,
     required this.verificationCode,
+    this.paymentMethod = PaymentMethod.wallet,
+    this.rating,
   });
 
   factory OrderModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -46,6 +51,11 @@ class OrderModel {
           : null,
       isLectureMode: data['isLectureMode'] ?? false,
       verificationCode: data['verificationCode'] ?? '',
+      paymentMethod: PaymentMethod.values.firstWhere(
+        (e) => e.name == data['paymentMethod'],
+        orElse: () => PaymentMethod.wallet,
+      ),
+      rating: (data['rating'] as num?)?.toDouble(),
     );
   }
 
@@ -60,6 +70,8 @@ class OrderModel {
       'pickupTime': pickupTime != null ? Timestamp.fromDate(pickupTime!) : null,
       'isLectureMode': isLectureMode,
       'verificationCode': verificationCode,
+      'paymentMethod': paymentMethod.name,
+      'rating': rating,
     };
   }
 }

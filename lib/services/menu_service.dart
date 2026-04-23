@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/menu_item_model.dart';
+import '../core/data/menu_blueprint.dart';
 
 /// Service for managing the "Obsidian Loom" Marketplace menu.
 class MenuService {
@@ -45,5 +46,15 @@ class MenuService {
   /// Administrator capability: Deletes a menu item.
   Future<void> deleteMenuItem(String id) async {
     await _menu.doc(id).delete();
+  }
+
+  /// Seeds the database with high-fidelity "Obsidian Loom" menu items
+  /// loaded from the central MenuBlueprint registry.
+  Future<void> seedMenu() async {
+    final List<MenuItem> seedData = MenuBlueprint.initialItems;
+
+    for (final item in seedData) {
+      await saveMenuItem(item);
+    }
   }
 }

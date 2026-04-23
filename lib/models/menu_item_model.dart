@@ -21,7 +21,11 @@ class MenuItem {
   final int stockCount;
   final bool isTrending;
   final int prepTime;
+  final bool isPromoted;
   final List<MenuOption> options;
+  final int totalOrders;
+  final bool isVegetarian;
+  final bool isVegan;
 
   MenuItem({
     required this.id,
@@ -38,7 +42,11 @@ class MenuItem {
     this.reviewCount = 0,
     this.stockCount = 10,
     this.isTrending = false,
+    this.isPromoted = false,
     this.options = const [],
+    this.totalOrders = 0,
+    this.isVegetarian = false,
+    this.isVegan = false,
   });
 
   factory MenuItem.fromMap(Map<String, dynamic> data, String documentId) {
@@ -58,7 +66,11 @@ class MenuItem {
       reviewCount: data['reviewCount'] ?? 0,
       stockCount: data['stockCount'] ?? 10,
       isTrending: data['isTrending'] ?? false,
+      isPromoted: data['isPromoted'] ?? false,
       options: opts,
+      totalOrders: data['totalOrders'] ?? 0,
+      isVegetarian: data['isVegetarian'] ?? false,
+      isVegan: data['isVegan'] ?? false,
     );
   }
 
@@ -77,7 +89,11 @@ class MenuItem {
       'reviewCount': reviewCount,
       'stockCount': stockCount,
       'isTrending': isTrending,
+      'isPromoted': isPromoted,
       'options': options.map((e) => e.toMap()).toList(),
+      'totalOrders': totalOrders,
+      'isVegetarian': isVegetarian,
+      'isVegan': isVegan,
     };
   }
 
@@ -126,8 +142,12 @@ class MenuItem {
     int? reviewCount,
     int? stockCount,
     bool? isTrending,
+    bool? isPromoted,
     int? prepTime,
     List<MenuOption>? options,
+    int? totalOrders,
+    bool? isVegetarian,
+    bool? isVegan,
   }) {
     return MenuItem(
       id: id ?? this.id,
@@ -143,8 +163,12 @@ class MenuItem {
       reviewCount: reviewCount ?? this.reviewCount,
       stockCount: stockCount ?? this.stockCount,
       isTrending: isTrending ?? this.isTrending,
+      isPromoted: isPromoted ?? this.isPromoted,
       prepTime: prepTime ?? this.prepTime,
       options: options ?? this.options,
+      totalOrders: totalOrders ?? this.totalOrders,
+      isVegetarian: isVegetarian ?? this.isVegetarian,
+      isVegan: isVegan ?? this.isVegan,
     );
   }
 }
@@ -170,5 +194,17 @@ class MenuOption {
       'price': price,
       'isDefault': isDefault,
     };
+  }
+
+  MenuOption copyWith({
+    String? name,
+    double? price,
+    bool? isDefault,
+  }) {
+    return MenuOption(
+      name: name ?? this.name,
+      price: price ?? this.price,
+      isDefault: isDefault ?? this.isDefault,
+    );
   }
 }

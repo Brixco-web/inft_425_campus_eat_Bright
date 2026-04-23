@@ -5,16 +5,24 @@ import 'package:flutter/material.dart';
 /// These tokens are mapped 1:1 with the Stitch mockup for high fidelity.
 class AppColors {
   // Midnight Obsidian Base
-  static const Color background = Color(0xFF0D1417);
-  static const Color surface = Color(0xFF0D1417);
-  static const Color surfaceContainerLowest = Color(0xFF080F12);
-  static const Color surfaceContainerLow = Color(0xFF161D20);
-  static const Color surfaceContainer = Color(0xFF1A2124);
-  static const Color surfaceContainerHigh = Color(0xFF242B2E);
-  static const Color surfaceContainerHighest = Color(0xFF2F3639);
-  static const Color surfaceVariant = Color(0xFF2F3639);
-  static const Color surfaceDim = Color(0xFF0D1417);
-  static const Color surfaceBright = Color(0xFF333A3E);
+  // Midnight Base (Preserved for Login)
+  static const Color midnightBase = Color(0xFF0D1417);
+  
+  // Elevated Obsidian (System-wide)
+  static const Color background = Color(0xFF141B1E); 
+  static const Color surface = Color(0xFF141B1E);
+  static const Color surfaceContainerLowest = Color(0xFF0C1316);
+  static const Color surfaceContainerLow = Color(0xFF192225);
+  static const Color surfaceContainer = Color(0xFF1E272A);
+  static const Color surfaceContainerHigh = Color(0xFF283135);
+  static const Color surfaceContainerHighest = Color(0xFF333D41);
+  static const Color surfaceVariant = Color(0xFF333D41);
+  static const Color surfaceDim = Color(0xFF141B1E);
+  static const Color surfaceBright = Color(0xFF3A4448);
+  
+  // Ambient Effects
+  static const Color ambientLight = Color(0x1F88AACC); // Faint misty bloom
+  static const double ambientOpacity = 0.12;
 
   // Primary & Accents (Heritage Gold)
   static const Color primary = Color(0xFFFFF6DF);
@@ -45,12 +53,17 @@ class AppColors {
   // Custom Effects
   static const Color glassPanel = Color(0x990D1417); // 60% Opacity
   static const Color goldenAura = Color(0x4DFFD700); // 30% Gold Glow
+  static const Color ivoryBackground = Color(0xFFFBFBFB); // New Bright Landing Base
+  static const Color frostedIvory = Color(0xCCFFFFFF); // Light glassmorphism
 
-  // Predefined Gradients
+  // Predefined Gradients & Effects
   static const LinearGradient goldGradient = LinearGradient(
     colors: [primary, primaryContainer],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-}
 
+  // Cinematic Texture Overlays
+  static const double textureOpacity = 0.04; // Slightly increased for visibility
+  static const Color textureColor = Colors.white;
+}

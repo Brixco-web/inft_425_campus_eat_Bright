@@ -1,17 +1,13 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../viewmodels/cart_viewmodel.dart';
 import '../../viewmodels/menu_viewmodel.dart';
 import '../../models/menu_item_model.dart';
-import '../../models/promotion_model.dart';
-import 'checkout_screen.dart';
+import '../orders/order_bucket_screen.dart';
 import 'widgets/food_card.dart';
 import 'widgets/category_chip.dart';
-import 'widgets/promo_banner.dart';
 import 'widgets/marketplace_drawer.dart';
 
 class MarketplaceScreen extends StatefulWidget {
@@ -23,6 +19,9 @@ class MarketplaceScreen extends StatefulWidget {
 
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   final TextEditingController _searchController = TextEditingController();
+  bool _showDietaryFilters = false;
+  bool _filterVegetarian = false;
+  bool _filterVegan = false;
 
   @override
   void dispose() {
@@ -42,36 +41,37 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       drawer: const MarketplaceDrawer(),
       body: Stack(
         children: [
-          // 1. Immersive Background
-          _buildImmersiveBackground(size),
+          // ── Cinematic Background Texture ──
+          _buildBackground(size),
 
-          // 2. Atmospheric Orbs
-          _buildAtmosphericOrbs(size),
-
-          // 3. Main Content (Scrollable)
+          // ── Main Content ──
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // Header & Search
+              // 1. Slim Header & Search
               _buildSliverHeader(context),
 
-              // Promotional Carousel (Waakye Thursday, etc.)
-              _buildSliverPromotions(menuViewModel),
-
-              // Services Bento
-              _buildSliverServices(),
-
-              // Categories Selector
+              // 2. Categories Horizontal
               _buildSliverCategories(menuViewModel),
 
-              // Menu Grid
+              // 3. The Menu Grid
               _buildSliverMenu(menuViewModel),
 
               // Bottom Padding
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+
+  Widget _buildBackground(Size size) {
+    return Positioned.fill(
+      child: Opacity(
+        opacity: 0.03,
+        child: Image.asset('assets/images/waakye_thursday.png', fit: BoxFit.cover),
       ),
     );
   }
@@ -79,313 +79,201 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   Widget _buildCartFAB(BuildContext context, CartViewModel cartVM) {
     if (cartVM.itemCount == 0) return const SizedBox.shrink();
 
-    return Hero(
-      tag: 'cart_fab',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CheckoutScreen()),
-          ),
-          child: Container(
-            height: 70,
-            width: 70,
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryContainer.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 80), // Adjust for Bottom Nav
+      child: Hero(
+        tag: 'cart_fab',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OrderBucketScreen()),
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(Icons.shopping_basket_rounded, color: Colors.black, size: 28),
-                Positioned(
-                  top: 15,
-                  right: 15,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                    child: Text(
-                      cartVM.itemCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+            child: Container(
+              height: 64,
+              width: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryContainer.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(Icons.shopping_basket_rounded, color: Colors.black, size: 24),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Text(
+                        cartVM.itemCount.toString(),
+                        style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildImmersiveBackground(Size size) {
-    return Container(
-      width: size.width,
-      height: size.height,
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(-0.8, -0.6),
-          radius: 1.2,
-          colors: [
-            AppColors.primaryContainer.withValues(alpha: 0.05),
-            AppColors.surfaceContainerLowest,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAtmosphericOrbs(Size size) {
-    return Stack(
-      children: [
-        Positioned(
-          top: -100,
-          right: -50,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.secondaryContainer.withValues(alpha: 0.03),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildSliverHeader(BuildContext context) {
-    return SliverAppBar(
-      backgroundColor: Colors.transparent,
-      expandedHeight: 180,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 60, 24, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'OBSIDIAN LOOM',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 12,
-                          letterSpacing: 4.0,
-                          color: AppColors.primaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Marketplace',
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontSize: 28,
-                        ),
-                      ),
-                    ],
-                  ),
-                  _buildProfileBadge(),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildSearchBar(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileBadge() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-      ),
-      child: const CircleAvatar(
-        radius: 20,
-        backgroundColor: AppColors.surfaceContainerHigh,
-        child: Icon(Icons.person_outline, color: AppColors.primaryContainer, size: 20),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.4),
-            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (val) => context.read<MenuViewModel>().searchItems(val),
-            style: GoogleFonts.manrope(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Search for Delights...',
-              hintStyle: GoogleFonts.manrope(color: Colors.white38),
-              prefixIcon: const Icon(Icons.search, color: AppColors.primaryContainer, size: 20),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 15),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliverPromotions(MenuViewModel vm) {
-    // Priority 1: Admin-defined active promotions (Static Pushes)
-    // Priority 2: Automated Spotlight items (Ratings >= 4.5)
-    final promos = vm.activePromotions;
-    final spotlights = vm.spotlightItems;
-    
-    final displayItems = promos.isNotEmpty ? promos : spotlights;
-    
-    if (displayItems.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: CarouselSlider.builder(
-          itemCount: displayItems.length,
-          itemBuilder: (context, index, realIndex) {
-            final item = displayItems[index];
-            if (item is PromotionModel) {
-              return PromoBanner(promo: item);
-            } else {
-              return PromoBanner(item: item as MenuItem);
-            }
-          },
-          options: CarouselOptions(
-            height: 200,
-            viewportFraction: 0.85,
-            enlargeCenterPage: true,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 5),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliverServices() {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      sliver: SliverToBoxAdapter(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'ELITE SERVICES',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 12,
-                letterSpacing: 2,
-                color: Colors.white38,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: _buildServiceItem(
-                    icon: Icons.restaurant_rounded,
-                    title: 'Resto',
-                    color: const Color(0xFFFF6B6B),
-                  ),
-                ),
+                Expanded(child: _buildSearchBar()),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: _buildServiceItem(
-                    icon: Icons.coffee_rounded,
-                    title: 'Cafe',
-                    color: const Color(0xFFFFD93D),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildServiceItem(
-                    icon: Icons.shopping_basket_rounded,
-                    title: 'Grocery',
-                    color: const Color(0xFF6BCB77),
-                  ),
-                ),
+                _buildFilterToggle(),
               ],
             ),
-            const SizedBox(height: 24),
+            if (_showDietaryFilters) _buildDietaryPreferences(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildServiceItem({required IconData icon, required String title, required Color color}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+  Widget _buildFilterToggle() {
+    final active = _filterVegetarian || _filterVegan;
+    return GestureDetector(
+      onTap: () => setState(() => _showDietaryFilters = !_showDietaryFilters),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primaryContainer : AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Icon(
+          Icons.tune_rounded,
+          size: 18,
+          color: active ? Colors.black : AppColors.primaryContainer,
+        ),
       ),
-      child: Column(
+    );
+  }
+
+  Widget _buildDietaryPreferences() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: GoogleFonts.manrope(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Colors.white70,
-            ),
+          _buildTinyFilterPill(
+            label: 'VEGETARIAN',
+            icon: Icons.eco_rounded,
+            isSelected: _filterVegetarian,
+            onTap: () {
+              setState(() => _filterVegetarian = !_filterVegetarian);
+              _updateFilters();
+            },
+          ),
+          const SizedBox(width: 8),
+          _buildTinyFilterPill(
+            label: 'VEGAN',
+            icon: Icons.spa_rounded,
+            isSelected: _filterVegan,
+            onTap: () {
+              setState(() => _filterVegan = !_filterVegan);
+              _updateFilters();
+            },
           ),
         ],
       ),
     );
   }
 
+  Widget _buildTinyFilterPill({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.4) : Colors.white10,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: isSelected ? AppColors.primaryContainer : Colors.white24),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: isSelected ? Colors.white : Colors.white24,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _updateFilters() {
+    context.read<MenuViewModel>().applyDietaryFilters(
+      isVegetarian: _filterVegetarian,
+      isVegan: _filterVegan,
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => context.read<MenuViewModel>().searchItems(val),
+        style: GoogleFonts.manrope(color: Colors.white, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: 'Search the culinary loom...',
+          hintStyle: GoogleFonts.manrope(color: Colors.white24, fontSize: 13),
+          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryContainer, size: 18),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSliverCategories(MenuViewModel vm) {
     return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 50,
+      child: Container(
+        height: 60,
+        margin: const EdgeInsets.only(top: 12),
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: MenuCategory.values.length,
           itemBuilder: (context, index) {
             final category = MenuCategory.values[index];
@@ -411,21 +299,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       return SliverFillRemaining(
         child: Center(
           child: Text(
-            'No items found in the Loom.',
-            style: GoogleFonts.spaceGrotesk(color: Colors.white38),
+            'Nothing found in this section.',
+            style: GoogleFonts.manrope(color: Colors.white24, fontSize: 13),
           ),
         ),
       );
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 20,
-          childAspectRatio: 0.75,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.72,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) => FoodCard(item: vm.filteredItems[index]),

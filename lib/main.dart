@@ -19,9 +19,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  // Initialize Hive
+  // Initialize Hive & open required boxes before the first frame
   await Hive.initFlutter();
-  // We will open boxes later in specific services/viewmodels
+  await Hive.openBox('settings');
   
   runApp(
     MultiProvider(
@@ -44,7 +44,7 @@ class CampusEatsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Campus Eats VVU',
+      title: 'Campus Eats',
       theme: AppTheme.darkTheme,
       home: const LoginScreen(),
     );

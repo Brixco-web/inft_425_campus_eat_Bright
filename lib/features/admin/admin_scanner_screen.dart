@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/order_model.dart';
 import '../../services/order_service.dart';
 import 'widgets/scanner_overlay.dart';
 
@@ -42,7 +43,7 @@ class _AdminScannerScreenState extends State<AdminScannerScreen> {
       final orderId = parts[0];
       final verificationCode = parts[1];
 
-      await _orderService.completeOrderHandshake(orderId, verificationCode);
+      await _orderService.completeOrderHandshake(orderId, verificationCode, PaymentMethod.wallet);
 
       setState(() {
         _isSuccess = true;

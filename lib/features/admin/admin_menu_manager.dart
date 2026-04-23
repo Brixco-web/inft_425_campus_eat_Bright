@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/app_image.dart';
 import '../../viewmodels/menu_viewmodel.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/promotion_model.dart';
@@ -45,6 +47,14 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome_motion_rounded, color: AppColors.primaryContainer),
+            tooltip: 'Restore Blueprint',
+            onPressed: () => _showSeedConfirm(context),
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primaryContainer,
@@ -120,40 +130,91 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
   Widget _buildItemCard(MenuItem item, MenuViewModel vm) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+        color: AppColors.surfaceContainerLow.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            item.imageUrl,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-                color: Colors.white10, child: const Icon(Icons.fastfood)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: AppImage(
+                    url: item.imageUrl,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name.toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '₵${item.price.toStringAsFixed(2)}',
+                        style: GoogleFonts.spaceGrotesk(
+                          color: AppColors.primaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  children: [
+                    Text(
+                      item.isAvailable ? 'ACTIVE' : 'OFFLINE',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: item.isAvailable ? Colors.greenAccent : Colors.redAccent,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Switch(
+                      value: item.isAvailable,
+                      onChanged: (val) => vm.saveMenuItem(item.copyWith(isAvailable: val)),
+                      activeThumbColor: Colors.greenAccent,
+                      activeTrackColor: Colors.greenAccent.withValues(alpha: 0.2),
+                      inactiveTrackColor: Colors.white10,
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_note_rounded, color: Colors.white38),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => AddEditMenuItemScreen(item: item)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        title: Text(item.name, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
-        subtitle: Text('GHS ${item.price.toStringAsFixed(2)}', style: GoogleFonts.manrope(color: AppColors.primaryContainer)),
-        trailing: Switch(
-          value: item.isAvailable,
-          onChanged: (val) => vm.saveMenuItem(MenuItem(
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            imageUrl: item.imageUrl,
-            category: item.category,
-            isAvailable: val,
-            prepTime: item.prepTime,
-          )),
-          activeThumbColor: AppColors.primaryContainer,
-        ),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditMenuItemScreen(item: item))),
       ),
     );
   }
@@ -175,6 +236,52 @@ class _AdminMenuManagerState extends State<AdminMenuManager> with SingleTickerPr
           onPressed: () => vm.deletePromotion(promo.id),
         ),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditPromotionScreen(promotion: promo))),
+      ),
+    );
+  }
+
+  void _showSeedConfirm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(
+          'RESTORE BLUEPRINT?',
+          style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.white),
+        ),
+        content: Text(
+          'This will re-sync the live menu with the codebase blueprint, including the new Campus Gems updates. Existing custom modifications may be overwritten.',
+          style: GoogleFonts.manrope(color: Colors.white70, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('CANCEL', style: GoogleFonts.spaceGrotesk(color: Colors.white38)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final nav = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              final menuVM = context.read<MenuViewModel>();
+              
+              nav.pop();
+              await menuVM.seedMenu();
+              
+              if (mounted) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Marketplace synchronized with Obsidian Blueprint.')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryContainer,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('PROCEED', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
